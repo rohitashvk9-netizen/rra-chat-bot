@@ -13,10 +13,13 @@ const FB_ACCESS_TOKEN = "EAAUeE0z0JlgBRtihbXVCTLIHh5Mx3oXwkYxZCxCQg0W9eNcD2yPcVR
 const PHONE_NUMBER_ID = "1152692744596700"; 
 const KAILASH_JI = "918955250697"; 
 const ROHITASHV_JI = "918058039415"; 
+
+// 🧠 AI CHATBOT KEY (Naya AI Feature) 🧠
+const GEMINI_API_KEY = "AQ.Ab8RN6K3NkoGgkUSfTRw6BWmrn74oS5k_ZcehlMTednP3fOFkw"; 
 // ==========================================
 
 // ==========================================
-// 🧠 SMART SPELLING CHECKER (AI Logic) 🧠
+// 🧠 SMART SPELLING CHECKER
 // ==========================================
 function getEditDistance(a, b) {
     if(a.length === 0) return b.length; 
@@ -37,15 +40,13 @@ function getEditDistance(a, b) {
 }
 
 // ==========================================
-// 📂 DATA LOAD KARNA (Fees + Students ko Milana)
+// 📂 DATA LOAD KARNA
 // ==========================================
 let unifiedData = {};
 let holidaysByMonth = {};
 
 function loadExcelData() {
     unifiedData = {};
-    
-    // 1. Students.csv padhna
     try {
         let sLines = fs.readFileSync('students.csv', 'utf8').split('\n');
         let sStarted = false;
@@ -55,18 +56,12 @@ function loadExcelData() {
                 let parts = line.split(',');
                 if(parts.length >= 13) {
                     let sr = parts[0].trim();
-                    unifiedData[sr] = {
-                        sr: sr, cls: parts[1].trim(), name: parts[2].trim(),
-                        father: parts[4].trim(), mobile: parts[7].trim(), village: parts[12].trim(),
-                        balance: "Record N/A"
-                    };
+                    unifiedData[sr] = { sr: sr, cls: parts[1].trim(), name: parts[2].trim(), father: parts[4].trim(), mobile: parts[7].trim(), village: parts[12].trim(), balance: "Record N/A" };
                 }
             }
         }
-        console.log(`✅ students.csv load ho gayi (Student Details)`);
-    } catch(e) { console.log("⚠️ students.csv nahi mili"); }
+    } catch(e) {}
 
-    // 2. Fees.csv padhna aur Data Milana
     try {
         let fLines = fs.readFileSync('fees.csv', 'utf8').split('\n');
         let fStarted = false;
@@ -77,22 +72,13 @@ function loadExcelData() {
                 if(parts.length >= 9) {
                     let sr = parts[1].trim();
                     let balanceAmount = parts[8].trim();
-                    if(unifiedData[sr]) {
-                        unifiedData[sr].balance = balanceAmount; // Purane data mein balance jod diya
-                    } else {
-                        // Agar koi bachcha sirf fees list mein hai
-                        unifiedData[sr] = {
-                            sr: sr, cls: parts[2].trim(), name: parts[0].trim(),
-                            father: "N/A", mobile: "N/A", village: "N/A", balance: balanceAmount
-                        };
-                    }
+                    if(unifiedData[sr]) { unifiedData[sr].balance = balanceAmount; } 
+                    else { unifiedData[sr] = { sr: sr, cls: parts[2].trim(), name: parts[0].trim(), father: "N/A", mobile: "N/A", village: "N/A", balance: balanceAmount }; }
                 }
             }
         }
-        console.log(`✅ fees.csv load ho gayi (Fees Details)`);
-    } catch(e) { console.log("⚠️ fees.csv nahi mili"); }
+    } catch(e) {}
 
-    // 3. Holidays padhna
     try {
         let hLines = fs.readFileSync('holidays.csv', 'utf8').split('\n');
         const monthNames = {"01":"January", "02":"February", "03":"March", "04":"April", "05":"May", "06":"June", "07":"July", "08":"August", "09":"September", "10":"October", "11":"November", "12":"December"};
@@ -110,8 +96,34 @@ function loadExcelData() {
         }
     } catch(e) {}
 }
+loadExcelData();
 
-loadExcelData(); // Server start hote hi data load hoga
+// ==========================================
+// 🧠 AI CHAT ENGINE (Lambi Baat ke liye)
+// ==========================================
+async function getSmartAIReply(userMessage) {
+    if (GEMINI_API_KEY === "YAHAN_APNI_FREE_GEMINI_API_KEY_DALEIN") {
+        return `🙏 सधन्यवाद! क्षमा करें, मैं इस विशेष जानकारी को ढूँढ नहीं पा रहा हूँ। कृपया अधिक जानकारी के लिए स्कूल मैनेजमेंट नंबर पर संपर्क करें या मेनू के लिए *0* दबाएं।`;
+    }
+    try {
+        const prompt = `You are an extremely polite, highly educated, and respectful digital assistant for 'Ranjeet Royal Academy (RRA)' located in Pada, Alwar, Rajasthan. 
+        School Directors/Managers are Kailash Ji and Rohitashv Ji.
+        Rules:
+        1. Be extremely polite (use '🙏', 'जी', 'आप', 'सधन्यवाद'). Never say a blunt "No".
+        2. Only discuss education, school activities, student motivation, and positive learning environments. Do not answer harmful or unrelated political questions.
+        3. Answer in clear Hindi.
+        4. Keep the reply helpful, educational, and reputed (like a respected teacher).
+        User's message: "${userMessage}"`;
+
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+            { contents: [{ parts: [{ text: prompt }] }] }
+        );
+        return response.data.candidates[0].content.parts[0].text;
+    } catch (error) {
+        return `🙏 क्षमा करें, अभी नेटवर्क में कुछ तकनीकी समस्या है। कृपया हमारी मैनेजमेंट टीम से संपर्क करें।`;
+    }
+}
 
 // ==========================================
 // 📨 Message Bhejne Ka System
@@ -138,11 +150,50 @@ app.post("/webhook", async (req, res) => {
     if (body.object && body.entry && body.entry[0].changes && body.entry[0].changes[0].value.messages) {
         let message = body.entry[0].changes[0].value.messages[0];
         let from = message.from; 
-        let userText = message.type === "text" && message.text ? message.text.body.toLowerCase().trim() : "";
+        let rawUserText = message.type === "text" && message.text ? message.text.body.trim() : "";
+        let userText = rawUserText.toLowerCase();
         let replyMessage = "";
 
         if (userText === "") {
-            sendWhatsAppMessage(from, `🙏 Kripya kewal likhkar (Text) message bhejein. Menu ke liye *0* bhejein.`);
+            sendWhatsAppMessage(from, `🙏 सधन्यवाद! कृपया अपनी बात लिखकर (Text) भेजें। मेनू के लिए *0* भेजें।`);
+            return res.sendStatus(200);
+        }
+
+        // ==========================================
+        // 🌟 ICEBREAKERS (BUTTONS) KA LOGIC 🌟
+        // ==========================================
+        if (userText === "school management number") {
+            replyMessage = "🏫 *Ranjeet Royal Academy Management*\n\n👨‍💼 Kailash Ji (Director): +91 8955250697\n👨‍💻 Rohitashv Ji (Manager): +91 8058039415\n\n🙏 आप किसी भी समय शिक्षा संबंधी जानकारी के लिए संपर्क कर सकते हैं।";
+            await sendWhatsAppMessage(from, replyMessage);
+            return res.sendStatus(200);
+        }
+        else if (userText === "💰 मेरी बकाया फीस चेक करें") {
+            replyMessage = "🙏 अपनी फीस की जानकारी के लिए कृपया विद्यार्थी का *SR Number*, *Mobile Number* या *नाम* लिखकर भेजें।";
+            await sendWhatsAppMessage(from, replyMessage);
+            return res.sendStatus(200);
+        }
+        else if (userText === "📅 छुट्टियों की लिस्ट दिखाएं") {
+            replyMessage = "🙏 छुट्टियों की जानकारी के लिए कृपया मुख्य मेनू से *3* दबाएं।";
+            await sendWhatsAppMessage(from, replyMessage);
+            return res.sendStatus(200);
+        }
+        else if (userText === '"📚 एडमिशन की जानकारी दें"' || userText === "📚 एडमिशन की जानकारी दें") {
+            replyMessage = "🏫 *Ranjeet Royal Academy* में नए सत्र के लिए प्रवेश प्रारंभ हैं!\n\n🙏 अधिक जानकारी के लिए कृपया मैनेजमेंट नंबर पर कॉल करें या अपना सवाल यहाँ विस्तार से लिखें।";
+            await sendWhatsAppMessage(from, replyMessage);
+            return res.sendStatus(200);
+        }
+
+        // ==========================================
+        // 🚨 COMPLAINT (Shikayat) LOGIC - English & Hindi
+        // ==========================================
+        if (userText.includes("shikayat") || userText.includes("शिकायत") || userText.includes("complaint") || userText.includes("sujhav") || userText.includes("सुझाव") || userText.includes("problem")) {
+            replyMessage = `🙏 हम आपकी बात का पूरा सम्मान करते हैं। आपकी समस्या या सुझाव को सीधे मैनेजमेंट (कैलाश जी और रोहितशव जी) तक पहुँचा दिया गया है। हम जल्द ही इस पर उचित और सकारात्मक कदम उठाएंगे।`;
+            
+            let mgmtMsg = `🚨 *RRA ERP Alert: Nayi Shikayat/Sujhav*\n\n*Parent/Number:* +${from}\n*Message:* ${rawUserText}\n\n_Kripya is par dhyan dein._`;
+            sendWhatsAppMessage(KAILASH_JI, mgmtMsg);
+            sendWhatsAppMessage(ROHITASHV_JI, mgmtMsg);
+            
+            await sendWhatsAppMessage(from, replyMessage);
             return res.sendStatus(200);
         }
 
@@ -150,16 +201,12 @@ app.post("/webhook", async (req, res) => {
         // 🤖 BOT MENU
         // ==========================================
         if (["hi", "hello", "नमस्ते", "namaste", "0", "help", "राम राम", "हाय"].includes(userText)) {
-            replyMessage = `🏫 *Ranjeet Royal Academy (RRA) mein aapka swagat hai!* 🏫\n\nRam-Ram Sa! 🙏 Main RRA ka digital assistant hoon.\n\n*1* 📝 Admission ki Jankari\n*2* 💳 Fees aur Student Record (Naam/Mobile/Gaon se khojein)\n*3* 🏖️ Chhuttiyon ki Jankari\n*4* 📞 School Management Number\n*5* ✍️ Shikayat ya Sujhav\n*6* 🚌 School Gadi / Driver Numbers\n*7* 🏫 School Reopening Time\n\n_Wapas menu ke liye *0* bhejein._`;
+            replyMessage = `🏫 *Ranjeet Royal Academy (RRA) में आपका हार्दिक स्वागत है!* 🏫\n\nराम-राम सा! 🙏 मैं RRA का डिजिटल असिस्टेंट हूँ।\n\n*1* 📝 एडमिशन की जानकारी\n*2* 💳 फीस और छात्र रिकॉर्ड खोजें\n*3* 🏖️ छुट्टियों की जानकारी\n*4* 📞 स्कूल मैनेजमेंट नंबर\n*5* ✍️ शिकायत या सुझाव\n*6* 🚌 स्कूल गाड़ी / ड्राइवर नंबर\n*7* 🏫 स्कूल खुलने का समय\n\n_कृपया अपनी आवश्यकता अनुसार नंबर दबाएं।_`;
         } 
-        else if (userText === "1") {
-            replyMessage = `📝 *Admission ki Jankari:*\n\nNursery se 10th tak ke admission chalu hain.\n🔗 *Online Form Link:* https://core.uolo.com/enquiry/MTE1Mjk \n\nAap school aakar bhi form le sakte hain.`;
-        }
-        else if (userText === "2") {
-            replyMessage = `🔍 *Data Khojne ka Tareeka:*\n\nFees aur poori detail ek sath janne ke liye bachche ka:\n*Name* (Spelling galat hogi to bhi chalega)\n*SR Number*\n*Mobile Number*\nya *Gaon ka naam* sidha type karke bhejein.\n\n*(Udaharann: Rahul ya 0400 ya Pada ya 9876543210)*`;
-        }
-        else if (userText === "3") {
-            replyMessage = `🏖️ *School ki Chhuttiyan:*\n\n* Har Sunday ko school band rahega.\n* Shivira panchang ke anusar chhuttiyan rahengi.\n\n`;
+        else if (userText === "1") { replyMessage = `📝 *Admission ki Jankari:*\nNursery se 10th tak ke admission chalu hain.\n🔗 *Online Form Link:* https://core.uolo.com/enquiry/MTE1Mjk \nAap school aakar bhi form le sakte hain.`; }
+        else if (userText === "2") { replyMessage = `🔍 *Data Khojne ka Tareeka:*\nFees aur detail janne ke liye bachche ka:\n*Name*, *SR Number*, *Mobile Number* ya *Gaon ka naam* type karke bhejein.\n*(Udaharann: Rahul ya 0400 ya Pada)*`; }
+        else if (userText === "3") { 
+            replyMessage = `🏖️ *School ki Chhuttiyan:*\n* Har Sunday ko school band rahega.\n* Shivira panchang ke anusar chhuttiyan rahengi.\n\n`;
             if(Object.keys(holidaysByMonth).length > 0) {
                 for(let month in holidaysByMonth) {
                     replyMessage += `🗓️ *${month} ki chhuttiyan:*\n`;
@@ -168,33 +215,19 @@ app.post("/webhook", async (req, res) => {
                 }
             } else { replyMessage += `Abhi kisi vishesh chhutti ka data update nahi hai.`; }
         }
-        else if (userText === "4") {
-            replyMessage = `📞 *Sampark karein (Subah 9 - Dophar 2):*\n\n* Kailash Ji (Director): 8955250697\n* Rohitashv Ji (Manager): 8058039415`;
-        }
-        else if (userText === "5") {
-            replyMessage = `✍️ *Shikayat ya Sujhav (Complaint):*\n\nAapki baat seedhe Kailash Ji aur Rohitashv Ji tak pahuchegi.\n\n*Sahi Tareeka (Example):*\nशिकायत: Mere bachche (SR: 0400) ki gaadi aaj late aayi thi, kripya check karein.`;
-        }
-        else if (userText.startsWith("शिकायत") || userText.startsWith("shikayat") || userText.startsWith("सुझाव") || userText.startsWith("sujhav")) {
-            replyMessage = `🙏 Dhanyawad! Aapki baat seedhe Management (Kailash Ji aur Rohitashv Ji) tak pahuncha di gayi hai. Hum jald hi is par dhyan denge.`;
-            let mgmtMsg = `🚨 *Nayi Shikayat/Sujhav (RRA ERP):*\n\n*Number:* +${from}\n*Message:* ${message.text.body}`;
-            sendWhatsAppMessage(KAILASH_JI, mgmtMsg);
-            sendWhatsAppMessage(ROHITASHV_JI, mgmtMsg);
-        }
-        else if (userText === "6") {
-            replyMessage = `🚌 *School Gadi / Driver:*\n\n* Balram Ji: 9928997400 (Khohra, Nangal)\n* Ganesh Ji: 7610015076 (Bhagat ka Bas)\n* Ramu Ji: 9784136402 (Lapala, Nayagaon)\n* Rajesh Ji: 9772161126 (Eswana, Machari)\n* Manohar Ji: 8058123195 (Berawanda, Nangal)\n* Dhansi Ji: 9024283273 (Gular ka Bas, Machari)`;
-        }
-        else if (userText === "7") {
-            replyMessage = `🏫 *School Khulne ki Suchna:*\n\nSchool *29 June* se punah khul rahe hain.\n⏰ *Samay:* Subah 08:00 se Dophar 02:00 baje tak.\nSabhi bachchon ka swagat hai! 🎉`;
-        }
+        else if (userText === "4") { replyMessage = `📞 *Sampark karein:*\n* Kailash Ji (Director): 8955250697\n* Rohitashv Ji (Manager): 8058039415`; }
+        else if (userText === "5") { replyMessage = `✍️ *Shikayat/Sujhav:*\nApni shikayat ke aage 'शिकायत' ya 'Complaint' likhkar bhejein.\nExample: *शिकायत: Mere bachche (SR 0400) ka I-Card nahi mila.*`; }
+        else if (userText === "6") { replyMessage = `🚌 *School Gadi / Driver:*\n* Balram Ji: 9928997400\n* Ganesh Ji: 7610015076\n* Ramu Ji: 9784136402\n* Rajesh Ji: 9772161126\n* Manohar Ji: 8058123195\n* Dhansi Ji: 9024283273`; }
+        else if (userText === "7") { replyMessage = `🏫 *School Khulne ki Suchna:*\nSchool *29 June* se punah khul rahe hain.\n⏰ *Samay:* Subah 08:00 se Dophar 02:00 baje tak.\n🙏 सभी बच्चों का स्वागत है!`; }
+        
         // ==========================================
-        // 🧠 SMART SEARCH ENGINE (Sab kuch ek sath)
+        // 🧠 SMART SEARCH & AI CHAT
         // ==========================================
         else {
-            let query = userText;
-            if(query.length >= 3 || !isNaN(query)) { 
-                let matches = [];
+            let matches = [];
+            if(userText.length >= 3 || !isNaN(userText)) { 
                 let allRecords = Object.values(unifiedData);
-                let queryWords = query.split(' ');
+                let queryWords = userText.split(' ');
 
                 for (let r of allRecords) {
                     let rName = (r.name || "").toLowerCase();
@@ -203,51 +236,35 @@ app.post("/webhook", async (req, res) => {
                     let rMob = (r.mobile || "").toLowerCase();
                     let isMatch = false;
 
-                    // 1. Exact Mobile, SR ya Gaon Match
-                    if (rSr === query || (query.length >= 8 && rMob.includes(query)) || rVill === query) { 
-                        isMatch = true; 
-                    }
-                    // 2. Exact ya Substring Naam Match (eg. 'priya' in 'priyanka')
-                    else if (rName.includes(query) || rVill.includes(query)) { 
-                        isMatch = true; 
-                    }
-                    // 3. AI Spelling Check (Agar spelling thodi galat ho)
+                    if (rSr === userText || (userText.length >= 8 && rMob.includes(userText)) || rVill === userText) { isMatch = true; }
+                    else if (rName.includes(userText) || rVill.includes(userText)) { isMatch = true; }
                     else {
                         let nameWords = rName.split(' ');
                         for(let nw of nameWords) {
                             for(let qw of queryWords) {
-                                if (qw.length >= 4 && nw.length >= 4) {
-                                    if (getEditDistance(qw, nw) <= 1) { // 1 letter ki galti maaf hai
-                                        isMatch = true; break;
-                                    }
-                                }
+                                if (qw.length >= 4 && nw.length >= 4 && getEditDistance(qw, nw) <= 1) { isMatch = true; break; }
                             }
                             if(isMatch) break;
                         }
                     }
-
                     if (isMatch) matches.push(r);
                 }
+            }
 
-                // ==========================================
-                // 📊 RESULT DIKHANE KA TARIQA
-                // ==========================================
-                if(matches.length > 0) {
-                    replyMessage = `🔍 *Aapke Data ke Natije (Milte-julte naam):*\n\n`;
-                    for(let i=0; i < Math.min(matches.length, 4); i++) {
-                        let m = matches[i];
-                        replyMessage += `👤 *Naam:* ${m.name}\n🆔 *SR:* ${m.sr} | *Class:* ${m.cls}\n👨‍💼 *Pita:* ${m.father}\n📱 *Mobile:* ${m.mobile}\n🏡 *Gaon:* ${m.village}\n💰 *Bakaya Fees:* ₹${m.balance}\n〰️〰️〰️\n`;
-                    }
-                    
-                    if(matches.length > 4) {
-                        replyMessage += `*+ ${matches.length - 4} aur bachche mile hain.* Kripya poora naam ya SR number type karein.\n`;
-                    }
-                    replyMessage += `\n_(Menu ke liye *0* bhejein)_`;
-                } else {
-                    replyMessage = `Maaf karein, mujhe "${message.text.body}" se milta-julta koi record nahi mila. 🤔\n\nKripya sahi naam (kam se kam 3 akshar), SR Number ya Mobile Number bhejein. (Menu ke liye *0* dabayein)`;
+            // Agar Excel mein record mil gaya:
+            if(matches.length > 0) {
+                replyMessage = `🔍 *Aapke Data ke Natije:*\n\n`;
+                for(let i=0; i < Math.min(matches.length, 4); i++) {
+                    let m = matches[i];
+                    replyMessage += `👤 *Naam:* ${m.name}\n🆔 *SR:* ${m.sr} | *Class:* ${m.cls}\n👨‍💼 *Pita:* ${m.father}\n📱 *Mobile:* ${m.mobile}\n🏡 *Gaon:* ${m.village}\n💰 *Bakaya Fees:* ₹${m.balance}\n〰️〰️〰️\n`;
                 }
-            } else {
-                replyMessage = `Maaf karein, main samajh nahi paya. Kripya kam se kam 3 akshar type karein ya menu ke liye *0* bhejein.`;
+                if(matches.length > 4) { replyMessage += `*+ ${matches.length - 4} aur bachche mile hain.*\n`; }
+                replyMessage += `\n🙏 _(मेनू के लिए *0* भेजें)_`;
+            } 
+            // Agar record nahi mila, to AI se "Lambi Baat" karein:
+            else {
+                // Yahan AI Chatbot function call hoga
+                replyMessage = await getSmartAIReply(rawUserText);
             }
         }
 
