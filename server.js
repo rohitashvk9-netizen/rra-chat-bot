@@ -1,6 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const fs = require("fs");
+const { GoogleGenerativeAI } = require("@google/generative-ai"); // 🌟 Naya Google AI SDK 🌟
 
 const app = express();
 app.use(express.json());
@@ -16,6 +17,7 @@ const ROHITASHV_JI = "918058039415";
 
 // 🧠 AI CHATBOT KEY (Aapki Nayi AQ Key) 🧠
 const GEMINI_API_KEY = "AQ.Ab8RN6JXUV5EzsqswEL1UVJZWtzTqlJKLnptQVtTQOWPcerSvA"; 
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY); // 🌟 Setup Google AI SDK 🌟
 // ==========================================
 
 // ==========================================
@@ -103,7 +105,6 @@ loadExcelData();
 // ==========================================
 async function getSmartAIReply(userMessage) {
     try {
-        // Build dynamic knowledge base string from loaded CSV holidays data
         let holidayKnowledge = "";
         if (Object.keys(holidaysByMonth).length > 0) {
             for(let month in holidaysByMonth) {
@@ -131,12 +132,12 @@ async function getSmartAIReply(userMessage) {
 
         यूजर का संदेश: "${userMessage}"`;
 
-        const response = await axios.post(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-            { contents: [{ parts: [{ text: prompt }] }] }
-        );
-        return response.data.candidates[0].content.parts[0].text;
+        // 🌟 Naya Tarika API Call Karne Ka 🌟
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        return result.response.text();
     } catch (error) {
+        console.error("AI Error:", error.message);
         return `राम-राम सा! 🙏 रंजीत रॉयल एकेडमी (RRA) मैनेजमेंट टीम आपके संदेश का पूरा सम्मान करती है। आपके इस विशेष सवाल या चर्चा के संदर्भ में उचित मार्गदर्शन के लिए आप सीधे हमारे विद्यालय कार्यालय में संपर्क कर सकते हैं या मुख्य मेनू के लिए *0* दबाएं। सधन्यवाद!`;
     }
 }
@@ -251,7 +252,6 @@ app.post("/webhook", async (req, res) => {
         else {
             let matches = [];
             
-            // 1. Smart Numeric Extraction (SR Number or Mobile Extraction from full sentences)
             let numbersInText = rawUserText.match(/\d+/g);
             let searchSR = "";
             let searchMob = "";
@@ -262,7 +262,6 @@ app.post("/webhook", async (req, res) => {
                 }
             }
 
-            // 2. Sentence NLP Cleanup: Removing common sentence words to extract core Name/Village
             let stopWords = ['ki', 'ka', 'ko', 'fees', 'fee', 'balance', 'record', 'detail', 'batao', 'bataiye', 'bataen', 'dikhao', 'check', 'karein', 'karo', 'hai', 'hain', 'की', 'का', 'को', 'फीस', 'बताओ', 'बताइए', 'बताएं', 'बताओ', 'दिखाओ', 'चेक', 'करो', 'करें', 'है', 'हैं', 'मेरे', 'बच्चे', 'का', 'रिकॉर्ड', 'बकाया', 'डिटेल', 'जानकारी', 'बताओं', 'दिखाओ', 'दिखाइए'];
             let cleanWords = userText.split(' ').filter(w => !stopWords.includes(w) && w.trim().length > 0);
             let cleanQuery = cleanWords.join(' ').trim();
@@ -276,12 +275,9 @@ app.post("/webhook", async (req, res) => {
                 let rMob = (r.mobile || "").toLowerCase();
                 let isMatch = false;
 
-                // Priority A: If explicit SR or Mobile was typed inside the sentence
                 if (searchSR !== "" && rSr === searchSR) { isMatch = true; }
                 else if (searchMob !== "" && rMob.includes(searchMob)) { isMatch = true; }
-                // Priority B: If core cleaned student name or village matches
                 else if (cleanQuery.length >= 2 && (rName.includes(cleanQuery) || rVill.includes(cleanQuery))) { isMatch = true; }
-                // Priority C: Spell checker fallback
                 else if (cleanWords.length > 0) {
                     let nameWords = rName.split(' ');
                     for(let nw of nameWords) {
@@ -294,7 +290,6 @@ app.post("/webhook", async (req, res) => {
                 if (isMatch) matches.push(r);
             }
 
-            // Output Formatting for Data Results
             if(matches.length > 0) {
                 replyMessage = `🔍 *Aapke Data ke Natije:*\n\n`;
                 for(let i=0; i < Math.min(matches.length, 4); i++) {
@@ -304,7 +299,6 @@ app.post("/webhook", async (req, res) => {
                 if(matches.length > 4) { replyMessage += `*+ ${matches.length - 4} aur bachche mile hain.*\n`; }
                 replyMessage += `\n🙏 _(मेनू के लिए *0* भेजें)_`;
             } 
-            // If no data record is found, hand over seamlessly to highly reputed Conversational AI
             else {
                 replyMessage = await getSmartAIReply(rawUserText);
             }
