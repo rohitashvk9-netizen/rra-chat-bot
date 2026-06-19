@@ -99,18 +99,37 @@ function loadExcelData() {
 loadExcelData();
 
 // ==========================================
-// 🧠 AI CHAT ENGINE (Lambi Baat ke liye)
+// 🧠 AI CHAT ENGINE (Lambi Baat, Sanskar aur School Hith)
 // ==========================================
 async function getSmartAIReply(userMessage) {
     try {
-        const prompt = `You are an extremely polite, highly educated, and respectful digital assistant for 'Ranjeet Royal Academy (RRA)' located in Pada, Alwar, Rajasthan. 
-        School Directors/Managers are Kailash Ji and Rohitashv Ji.
-        Rules:
-        1. Be extremely polite (use '🙏', 'जी', 'आप', 'सधन्यवाद'). Never say a blunt "No".
-        2. Only discuss education, school activities, student motivation, and positive learning environments. Do not answer harmful or unrelated political questions.
-        3. Answer in clear Hindi.
-        4. Keep the reply helpful, educational, and reputed (like a respected teacher).
-        User's message: "${userMessage}"`;
+        // Build dynamic knowledge base string from loaded CSV holidays data
+        let holidayKnowledge = "";
+        if (Object.keys(holidaysByMonth).length > 0) {
+            for(let month in holidaysByMonth) {
+                holidayKnowledge += `\n🗓️ ${month} की छुट्टियां:\n${holidaysByMonth[month].join("\n")}\n`;
+            }
+        } else {
+            holidayKnowledge = "अभी छुट्टियों की कोई विशेष सूची अपडेटेड नहीं है, केवल प्रत्येक रविवार को विद्यालय में अवकाश रहता है।";
+        }
+
+        const prompt = `आप रंजीत रॉयल एकेडमी (RRA), पाड़ा (अलवर, राजस्थान) के एक बेहद प्रतिष्ठित, सुशिक्षित, संस्कारी और आदरणीय वरिष्ठ शिक्षक (Senior Teacher) डिजिटल सहायक हैं। 
+        विद्यालय के डायरेक्टर कैलाश जी हैं और मैनेजर रोहितशव जी हैं।
+        
+        विद्यालय की आधारभूत जानकारी (School Knowledge):
+        - स्कूल खुलने की तारीख: विद्यालय 29 जून से नए सत्र के लिए पुनः खुल रहे हैं।
+        - स्कूल का समय: सुबह 08:00 बजे से दोपहर 02:00 बजे तक रहेगा।
+        - स्कूल की आधिकारिक छुट्टियां (Holidays Data): ${holidayKnowledge}
+
+        बातचीत के कड़े नियम (Strict Rules for Response):
+        1. बातचीत की शुरुआत हमेशा आदरपूर्वक 'राम-राम सा! 🙏' से करें। वाक्य में 'जी', 'आप', 'सधन्यवाद' का भरपूर सम्मानजनक उपयोग करें। आपका लहजा ऐसा होना चाहिए जैसे कोई आदरणीय गुरुजी साक्षात बात कर रहे हों।
+        2. यदि यूजर स्कूल की छुट्टियों (Holidays), स्कूल दोबारा खुलने की तारीख या समय के बारे में प्राकृतिक भाषा में पूछे (जैसे: 'छुट्टी कब है', 'स्कूल कब खुलेगा', 'जून में कब छुट्टी है'), तो ऊपर दिए गए 'School Knowledge' को ध्यान से पढ़ें और सटीक तारीख व जानकारी अत्यंत आदर के साथ शुद्ध हिंदी में बताएं।
+        3. यदि माता-पिता या बच्चे मोबाइल की लत से छुटकारा, पढ़ाई में मन न लगना, एकाग्रता बढ़ाना, लंबे समय तक बैठकर पूरा अध्याय कैसे पढ़ें, सुबह जल्दी उठना (ब्रह्म मुहूर्त के लाभ), समय पर पौष्टिक और ताजा भोजन करने, अच्छी नींद लेने तथा प्रतिदिन 5-10 मिनट ध्यान (Meditation) या प्राणायाम करने जैसी दिनचर्या के बारे में पूछें, तो उन्हें बहुत ही सुंदर, व्यावहारिक, मनोवैज्ञानिक और शिक्षाप्रद तरीके से पूरा विस्तार से समझाएं। 
+        4. बातचीत में स्वामी विवेकानंद, डॉ. एपीजे अब्दुल कलाम या महान विद्वानों के सकारात्मक और ऊर्जावान प्रेरक विचार (Motivational Quotes) शामिल करें ताकि बच्चों और पेरेंट्स में सकारात्मक ऊर्जा का संचार हो।
+        5. यदि कोई यूजर बिना किसी नाम या एसआर नंबर के केवल फीस या रिकॉर्ड की सामान्य बात करे (जैसे: 'मेरे बच्चे की फीस बताओ', 'डिटेल दिखाओ', 'फीस कितनी है'), तो उन्हें बहुत प्यार से समझाएं कि वे छात्र का नाम, एसआर नंबर (SR Number) या पंजीकृत मोबाइल नंबर लिखकर भेजें ताकि कंप्यूटर सिस्टम से सटीक रिकॉर्ड निकाला जा सके।
+        6. हमेशा सकारात्मक, मर्यादित और शिक्षाप्रद बातें करें जो स्कूल के हित में हों। किसी भी अभद्र या गैर-शैक्षणिक बात का उत्तर न दें। पूरा जवाब केवल साफ और स्पष्ट हिंदी में होना चाहिए।
+
+        यूजर का संदेश: "${userMessage}"`;
 
         const response = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
@@ -118,7 +137,7 @@ async function getSmartAIReply(userMessage) {
         );
         return response.data.candidates[0].content.parts[0].text;
     } catch (error) {
-        return `राम-राम सा! 🙏 रंजीत रॉयल एकेडमी (RRA) मैनेजमेंट टीम आपके संदेश का सम्मान करती है। आपके इस विशेष सवाल या चर्चा के संदर्भ में उचित मार्गदर्शन के लिए आप सीधे हमारे विद्यालय कार्यालय में संपर्क कर सकते हैं। मुख्य मेनू के लिए *0* दबाएं।`;
+        return `राम-राम सा! 🙏 रंजीत रॉयल एकेडमी (RRA) मैनेजमेंट टीम आपके संदेश का पूरा सम्मान करती है। आपके इस विशेष सवाल या चर्चा के संदर्भ में उचित मार्गदर्शन के लिए आप सीधे हमारे विद्यालय कार्यालय में संपर्क कर सकते हैं या मुख्य मेनू के लिए *0* दबाएं। सधन्यवाद!`;
     }
 }
 
@@ -198,7 +217,7 @@ app.post("/webhook", async (req, res) => {
         // 🤖 BOT MENU
         // ==========================================
         if (["hi", "hello", "नमस्ते", "namaste", "0", "help", "राम राम", "हाय"].includes(userText)) {
-            replyMessage = `🏫 *Ranjeet Royal Academy (RRA) में आपका हार्दिक स्वागत है!* 🏫\n\nराम-राम सा! 🙏 मैं RRA का डिजिटल असिस्टेंट हूँ।\n\n*1* 📝 एडमिशन की जानकारी\n*2* 💳 फीस और छात्र रिकॉर्ड खोजें\n*3* 🏖️ छुट्टियों की जानकारी\n*4* 📞 स्कूल मैनेजमेंट नंबर\n*5* ✍️ शिकायत या सुझाव\n*6* 🚌 स्कूल गाड़ी / ड्राइवर नंबर\n*7* 🏫 स्कूल खुलने का समय\n\n_कृपया अपनी आवश्यकता अनुसार नंबर दबाएं।_`;
+            replyMessage = `🏫 *Ranjeet Royal Academy (RRA) में आपका हार्दिक स्वागत है!* 🏫\n\nराम-राम सा! 🙏 मैं RRA का digital assistant हूँ।\n\n*1* 📝 एडमिशन की जानकारी\n*2* 💳 फीस और छात्र रिकॉर्ड खोजें\n*3* 🏖️ छुट्टियों की जानकारी\n*4* 📞 स्कूल मैनेजमेंट नंबर\n*5* ✍️ शिकायत या सुझाव\n*6* 🚌 स्कूल गाड़ी / ड्राइवर नंबर\n*7* 🏫 स्कूल खुलने का समय\n\n_कृपया अपनी आवश्यकता अनुसार नंबर दबाएं।_`;
         } 
         else if (userText === "1") { replyMessage = `📝 *Admission ki Jankari:*\nNursery se 10th tak ke admission chalu hain.\n🔗 *Online Form Link:* https://core.uolo.com/enquiry/MTE1Mjk \nAap school aakar bhi form le sakte hain.`; }
         else if (userText === "2") { replyMessage = `🔍 *Data Khojne ka Tareeka:*\nFees aur detail janne ke liye bachche ka:\n*Name*, *SR Number*, *Mobile Number* ya *Gaon ka naam* type karke bhejein.\n*(Udaharann: Rahul ya 0400 ya Pada)*`; }
@@ -231,33 +250,51 @@ app.post("/webhook", async (req, res) => {
         // ==========================================
         else {
             let matches = [];
-            if(userText.length >= 3 || !isNaN(userText)) { 
-                let allRecords = Object.values(unifiedData);
-                let queryWords = userText.split(' ');
-
-                for (let r of allRecords) {
-                    let rName = (r.name || "").toLowerCase();
-                    let rVill = (r.village || "").toLowerCase();
-                    let rSr = (r.sr || "").toLowerCase();
-                    let rMob = (r.mobile || "").toLowerCase();
-                    let isMatch = false;
-
-                    if (rSr === userText || (userText.length >= 8 && rMob.includes(userText)) || rVill === userText) { isMatch = true; }
-                    else if (rName.includes(userText) || rVill.includes(userText)) { isMatch = true; }
-                    else {
-                        let nameWords = rName.split(' ');
-                        for(let nw of nameWords) {
-                            for(let qw of queryWords) {
-                                if (qw.length >= 4 && nw.length >= 4 && getEditDistance(qw, nw) <= 1) { isMatch = true; break; }
-                            }
-                            if(isMatch) break;
-                        }
-                    }
-                    if (isMatch) matches.push(r);
+            
+            // 1. Smart Numeric Extraction (SR Number or Mobile Extraction from full sentences)
+            let numbersInText = rawUserText.match(/\d+/g);
+            let searchSR = "";
+            let searchMob = "";
+            if (numbersInText) {
+                for (let num of numbersInText) {
+                    if (num.length >= 8) searchMob = num; 
+                    else if (num.length >= 1 && num.length <= 5) searchSR = num; 
                 }
             }
 
-            // Agar Excel mein record mil gaya:
+            // 2. Sentence NLP Cleanup: Removing common sentence words to extract core Name/Village
+            let stopWords = ['ki', 'ka', 'ko', 'fees', 'fee', 'balance', 'record', 'detail', 'batao', 'bataiye', 'bataen', 'dikhao', 'check', 'karein', 'karo', 'hai', 'hain', 'की', 'का', 'को', 'फीस', 'बताओ', 'बताइए', 'बताएं', 'बताओ', 'दिखाओ', 'चेक', 'करो', 'करें', 'है', 'हैं', 'मेरे', 'बच्चे', 'का', 'रिकॉर्ड', 'बकाया', 'डिटेल', 'जानकारी', 'बताओं', 'दिखाओ', 'दिखाइए'];
+            let cleanWords = userText.split(' ').filter(w => !stopWords.includes(w) && w.trim().length > 0);
+            let cleanQuery = cleanWords.join(' ').trim();
+
+            let allRecords = Object.values(unifiedData);
+
+            for (let r of allRecords) {
+                let rName = (r.name || "").toLowerCase();
+                let rVill = (r.village || "").toLowerCase();
+                let rSr = (r.sr || "").toLowerCase();
+                let rMob = (r.mobile || "").toLowerCase();
+                let isMatch = false;
+
+                // Priority A: If explicit SR or Mobile was typed inside the sentence
+                if (searchSR !== "" && rSr === searchSR) { isMatch = true; }
+                else if (searchMob !== "" && rMob.includes(searchMob)) { isMatch = true; }
+                // Priority B: If core cleaned student name or village matches
+                else if (cleanQuery.length >= 2 && (rName.includes(cleanQuery) || rVill.includes(cleanQuery))) { isMatch = true; }
+                // Priority C: Spell checker fallback
+                else if (cleanWords.length > 0) {
+                    let nameWords = rName.split(' ');
+                    for(let nw of nameWords) {
+                        for(let qw of cleanWords) {
+                            if (qw.length >= 4 && nw.length >= 4 && getEditDistance(qw, nw) <= 1) { isMatch = true; break; }
+                        }
+                        if(isMatch) break;
+                    }
+                }
+                if (isMatch) matches.push(r);
+            }
+
+            // Output Formatting for Data Results
             if(matches.length > 0) {
                 replyMessage = `🔍 *Aapke Data ke Natije:*\n\n`;
                 for(let i=0; i < Math.min(matches.length, 4); i++) {
@@ -267,7 +304,7 @@ app.post("/webhook", async (req, res) => {
                 if(matches.length > 4) { replyMessage += `*+ ${matches.length - 4} aur bachche mile hain.*\n`; }
                 replyMessage += `\n🙏 _(मेनू के लिए *0* भेजें)_`;
             } 
-            // Agar record nahi mila, to AI se "Lambi Baat" karein:
+            // If no data record is found, hand over seamlessly to highly reputed Conversational AI
             else {
                 replyMessage = await getSmartAIReply(rawUserText);
             }
