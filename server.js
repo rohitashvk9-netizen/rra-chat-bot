@@ -48,13 +48,18 @@ function getEditDistance(a, b) {
 }
 
 // ==========================================
-// 📂 DATA LOAD KARNA
+// 📂 DATA LOAD KARNA (Students, Fees, Holidays & Staff)
 // ==========================================
 let unifiedData = {};
+let staffData = {};
 let holidaysByMonth = {};
 
 function loadExcelData() {
     unifiedData = {};
+    staffData = {};
+    holidaysByMonth = {};
+
+    // 1. Load Students
     try {
         let sLines = fs.readFileSync('students.csv', 'utf8').split('\n');
         let sStarted = false;
@@ -68,8 +73,9 @@ function loadExcelData() {
                 }
             }
         }
-    } catch(e) {}
+    } catch(e) { console.log("Students file load error or not found"); }
 
+    // 2. Load Fees
     try {
         let fLines = fs.readFileSync('fees.csv', 'utf8').split('\n');
         let fStarted = false;
@@ -87,6 +93,7 @@ function loadExcelData() {
         }
     } catch(e) {}
 
+    // 3. Load Holidays
     try {
         let hLines = fs.readFileSync('holidays.csv', 'utf8').split('\n');
         const monthNames = {"01":"January", "02":"February", "03":"March", "04":"April", "05":"May", "06":"June", "07":"July", "08":"August", "09":"September", "10":"October", "11":"November", "12":"December"};
@@ -103,11 +110,29 @@ function loadExcelData() {
             }
         }
     } catch(e) {}
+
+    // 4. Load Staff Data (Naya Block)
+    try {
+        if (fs.existsSync('staff.csv')) {
+            let stLines = fs.readFileSync('staff.csv', 'utf8').split('\n');
+            let stStarted = false;
+            for(let line of stLines) {
+                if(line.includes('Staff Id,Staff Name,Designation,Mobile')) { stStarted = true; continue; }
+                if(stStarted && line.trim().length > 5) {
+                    let parts = line.split(',');
+                    if(parts.length >= 4) {
+                        let id = parts[0].trim();
+                        staffData[id] = { id: id, name: parts[1].trim(), designation: parts[2].trim(), mobile: parts[3].trim() };
+                    }
+                }
+            }
+        }
+    } catch(e) { console.error("Staff file error:", e.message); }
 }
 loadExcelData();
 
 // ==========================================
-// 🧠 AI CHAT ENGINE (Lambi Baat, Sanskar aur School Hith)
+// 🧠 AI CHAT ENGINE
 // ==========================================
 async function getSmartAIReply(userMessage) {
     if (!genAI) {
@@ -135,8 +160,8 @@ async function getSmartAIReply(userMessage) {
         बातचीत के कड़े नियम (Strict Rules for Response):
         1. बातचीत की शुरुआत हमेशा आदरपूर्वक 'राम-राम सा! 🙏' से करें। वाक्य में 'जी', 'आप', 'सधन्यवाद' का भरपूर सम्मानजनक उपयोग करें। आपका लहजा ऐसा होना चाहिए जैसे कोई आदरणीय गुरुजी साक्षात बात कर रहे हों।
         2. यदि यूजर स्कूल की छुट्टियों (Holidays), स्कूल दोबारा खुलने की तारीख या समय के बारे में प्राकृतिक भाषा में पूछे (जैसे: 'छुट्टी कब है', 'स्कूल कब खुलेगा', 'जून में कब छुट्टी है'), तो ऊपर दिए गए 'School Knowledge' को ध्यान से पढ़ें और सटीक तारीख व जानकारी अत्यंत आदर के साथ शुद्ध हिंदी में बताएं।
-        3. यदि माता-पिता या बच्चे मोबाइल की लत से छुटकारा, पढ़ाई में मन न लगना, एकाग्रता बढ़ाना, लंबे समय तक बैठकर पूरा अध्याय कैसे पढ़ें, सुबह जल्दी उठना (ब्रह्म मुहूर्त के लाभ), समय पर पौष्टिक और ताजा भोजन करने, अच्छी नींद लेने तथा प्रतिदिन 5-10 मिनट ध्यान (Meditation) या प्राणायाम करने जैसी दिनचर्या के बारे में पूछें, तो उन्हें बहुत ही सुंदर, व्यावहारिक, मनोवैज्ञानिक और शिक्षाप्रद तरीके से पूरा विस्तार से समझाएं। 
-        4. बातचीत में स्वामी विवेकानंद, डॉ. एपीजे अब्दुल कलाम या महान विद्वानों के सकारात्मक और ऊर्जावान प्रेरक विचार (Motivational Quotes) शामिल करें ताकि बच्चों and पेरेंट्स में सकारात्मक ऊर्जा का संचार हो।
+        3. यदि माता-पिता या बच्चे मोबाइल की लत से छुटकारा, पढ़ाई में मन न लगना, एकाग्रता बढ़ाना, लंबे समय तक बैठकर पूरा अध्याय कैसे पढ़ें, सुबह जल्दी उठना (ब्रह्म मुहूर्त के लाभ), समय पर पौष्टिक और ताजा भोजन करने, अच्छी नींद लेने तथा प्रतिदिन 5-10 मिनट ध्यान (Meditation) या प्राणायाम करने जैसी दिनचर्या के बारे में पूछें, तो उन्हें बहुत ही सुंदर, व्यावहारिक, मनोवैज्ञानिकและ शिक्षाप्रद तरीके से पूरा विस्तार से समझाएं। 
+        4. बातचीत में स्वामी विवेकानंद, डॉ. एपीजे अब्दुल कलाम या महान विद्वानों के सकारात्मक और ऊर्जावान प्रेरक विचार (Motivational Quotes) शामिल करें ताकि बच्चों और पेरेंट्स में सकारात्मक ऊर्जा का संचार हो।
         5. यदि कोई यूजर बिना किसी नाम या एसआर नंबर के केवल फीस या रिकॉर्ड की सामान्य बात करे (जैसे: 'मेरे बच्चे की फीस बताओ', 'डिटेल दिखाओ', 'फीस कितनी है'), तो उन्हें बहुत प्यार से समझाएं कि वे छात्र का नाम, एसआर नंबर (SR Number) या पंजीकृत मोबाइल नंबर लिखकर भेजें ताकि कंप्यूटर सिस्टम से सटीक रिकॉर्ड निकाला जा सके।
         6. हमेशा सकारात्मक, मर्यादित और शिक्षाप्रद बातें करें जो स्कूल के हित में हों। किसी भी अभद्र या गैर-शैक्षणिक बात का उत्तर न दें। पूरा जवाब केवल साफ और स्पष्ट हिंदी में होना चाहिए।
 
@@ -187,24 +212,24 @@ app.post("/webhook", async (req, res) => {
         }
 
         // ==========================================
-        // 🚀 SMART PERSONALIZED BROADCAST SYSTEM
+        // 🚀 1. STUDENT PERSONALIZED BROADCAST SYSTEM
         // ==========================================
-        if ((from === ROHITASHV_JI || from === KAILASH_JI) && rawUserText.toUpperCase().startsWith("#SENDALL")) {
-            let broadcastMsg = rawUserText.substring(8).trim(); 
+        if ((from === ROHITASHV_JI || from === KAILASH_JI) && (rawUserText.toUpperCase().startsWith("#SENDSTUDENTS") || rawUserText.toUpperCase().startsWith("#SENDALL"))) {
+            let offset = rawUserText.toUpperCase().startsWith("#SENDSTUDENTS") ? 13 : 8;
+            let broadcastMsg = rawUserText.substring(offset).trim(); 
             
             if (broadcastMsg === "") {
-                sendWhatsAppMessage(from, "❌ Error: मैसेज खाली है। सही तरीका: #SENDALL आपका मैसेज यहाँ लिखें।");
+                sendWhatsAppMessage(from, "❌ Error: मैसेज खाली है। सही तरीका: #SENDSTUDENTS आपका मैसेज यहाँ लिखें।");
                 return res.sendStatus(200);
             }
 
-            sendWhatsAppMessage(from, `🚀 *Personalized ब्रॉडकास्ट शुरू हो गया है!*\nयह मैसेज सभी पेरेंट्स को उनके बच्चे के नाम और क्लास के साथ भेजा जा रहा है। कृपया कुछ मिनट प्रतीक्षा करें।\n\n*मूल संदेश:* ${broadcastMsg}`);
+            sendWhatsAppMessage(from, `🚀 *Students ब्रॉडकास्ट शुरू हो गया है!*\nयह मैसेज सभी पेरेंट्स को उनके बच्चे के नाम और क्लास के साथ भेजा जा रहा है।`);
 
-            // Background parsing and customized delivery
             (async () => {
                 let allRecords = Object.values(unifiedData);
                 let successCount = 0;
                 let totalProcessed = 0;
-                let processedKeys = new Set(); // Sibling spamming aur duplicate se bachne ke liye
+                let processedKeys = new Set();
 
                 for(let r of allRecords) {
                     if(r.mobile && r.mobile !== "N/A") {
@@ -214,17 +239,14 @@ app.post("/webhook", async (req, res) => {
                         else if (cleanMobile.length === 12 && cleanMobile.startsWith("91")) phone = cleanMobile;
 
                         if (phone) {
-                            // Unique key uniquely identifies specific student-phone record
                             let uniqueKey = `${phone}_${r.name}_${r.cls}`;
                             if (processedKeys.has(uniqueKey)) continue;
                             processedKeys.add(uniqueKey);
-                            
                             totalProcessed++;
                             
                             let studentName = r.name || "विद्यार्थी";
                             let studentClass = r.cls || "N/A";
                             
-                            // 🌟 AAPKA SANSHODHIT PERSONALIZED MESSAGE FORMAT 🌟
                             let personalizedMsg = `👤 *Dear ${studentName}, Class: ${studentClass}*\n\n` +
                                                   `${broadcastMsg}\n\n` +
                                                   `🤝 *RRA AI Chatbot se judne ke liye dhanyawad!*\n` +
@@ -238,16 +260,76 @@ app.post("/webhook", async (req, res) => {
                                     headers: { Authorization: `Bearer ${FB_ACCESS_TOKEN}`, "Content-Type": "application/json" }
                                 });
                                 successCount++;
-                            } catch(e) {
-                                console.error(`Error sending to ${phone}:`, e.message);
-                            }
-                            await sleep(1500); // Policy delay to keep number safe
+                            } catch(e) {}
+                            await sleep(1500); 
                         }
                     }
                 }
-                
-                // Final Admin Report
-                sendWhatsAppMessage(from, `📢 *ब्रॉडकास्ट सफलतापुर्वक पूरा हुआ!*\n\n✅ कुल ${successCount}/${totalProcessed} अभिभावकों को personalized संदेश भेज दिए गए हैं।`);
+                sendWhatsAppMessage(from, `📢 *Students ब्रॉडकास्ट पूरा हुआ!*\n\n✅ कुल ${successCount}/${totalProcessed} अभिभावकों को personalized संदेश भेज दिए गए हैं।`);
+            })();
+
+            return res.sendStatus(200);
+        }
+
+        // ==========================================
+        // 🚀 2. STAFF PERSONALIZED BROADCAST SYSTEM (Naya Block)
+        // ==========================================
+        if ((from === ROHITASHV_JI || from === KAILASH_JI) && rawUserText.toUpperCase().startsWith("#SENDSTAFF")) {
+            let broadcastMsg = rawUserText.substring(10).trim(); 
+            
+            if (broadcastMsg === "") {
+                sendWhatsAppMessage(from, "❌ Error: मैसेज खाली है। सही तरीका: #SENDSTAFF आपका मैसेज यहाँ लिखें।");
+                return res.sendStatus(200);
+            }
+
+            sendWhatsAppMessage(from, `🚀 *Staff ब्रॉडकास्ट शुरू हो गया है!*\nयह मैसेज सभी स्टाफ मेंबर्स को उनके नाम और पद (Designation) के साथ भेजा जा रहा है।`);
+
+            (async () => {
+                let allStaff = Object.values(staffData);
+                let successCount = 0;
+                let totalProcessed = 0;
+                let processedKeys = new Set();
+
+                if(allStaff.length === 0) {
+                    sendWhatsAppMessage(from, "⚠️ Alert: staff.csv फाइल खाली है या सर्वर पर लोड नहीं हो पाई है। कृपया फाइल चेक करें।");
+                    return;
+                }
+
+                for(let s of allStaff) {
+                    if(s.mobile && s.mobile !== "N/A") {
+                        let cleanMobile = s.mobile.replace(/\D/g, "");
+                        let phone = "";
+                        if(cleanMobile.length === 10) phone = "91" + cleanMobile;
+                        else if (cleanMobile.length === 12 && cleanMobile.startsWith("91")) phone = cleanMobile;
+
+                        if (phone) {
+                            if (processedKeys.has(phone)) continue;
+                            processedKeys.add(phone);
+                            totalProcessed++;
+                            
+                            let staffName = s.name || "स्टाफ सदस्य";
+                            let staffRole = s.designation || "Staff";
+                            
+                            // 🌟 STAFF KE LIYE REPUTED & PROFESSIONAL FORMAT 🌟
+                            let personalizedMsg = `👤 *Dear ${staffName}, Designation: ${staffRole}*\n\n` +
+                                                  `${broadcastMsg}\n\n` +
+                                                  `🤝 *RRA Management Team se judne ke liye dhanyawad!*\n` +
+                                                  `📞 Adhik jankari ke liye is chatbot par chat karein ya management team (Kailash Ji: 8955250697, Rohitashv Ji: 8058039415) se seedhe sampark karein.`;
+
+                            try {
+                                await axios({
+                                    method: "POST",
+                                    url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+                                    data: { messaging_product: "whatsapp", to: phone, text: { body: personalizedMsg } },
+                                    headers: { Authorization: `Bearer ${FB_ACCESS_TOKEN}`, "Content-Type": "application/json" }
+                                });
+                                successCount++;
+                            } catch(e) {}
+                            await sleep(1500); 
+                        }
+                    }
+                }
+                sendWhatsAppMessage(from, `📢 *Staff ब्रॉडकास्ट पूरा हुआ!*\n\n✅ कुल ${successCount}/${totalProcessed} स्टाफ सदस्यों को आदर सहित संदेश भेज दिए गए हैं।`);
             })();
 
             return res.sendStatus(200);
@@ -295,7 +377,7 @@ app.post("/webhook", async (req, res) => {
         // 🤖 BOT MENU
         // ==========================================
         if (["hi", "hello", "नमस्ते", "namaste", "0", "help", "राम राम", "हाय"].includes(userText)) {
-            replyMessage = `🏫 *Ranjeet Royal Academy (RRA) में आपका हार्दिक स्वागत है!* 🏫\n\nराम-राम सा! 🙏 मैं RRA का digital assistant हूँ।\n\n*1* 📝 एडमिशन की जानकारी\n*2* 💳 फीस और छात्र रिकॉर्ड खोजें\n*3* 🏖️ छुट्टियों की जानकारी\n*4* 📞 स्कूल मैनेजमेंट नंबर\n*5* ✍️ शिकायत या सुझाव\n*6* 🚌 स्कूल गाड़ी / ड्राइवर नंबर\n*7* 🏫 स्कूल खुलने का समय\n\n_कृपया अपनी आवश्यकता अनुसार नंबर दबाएं।_`;
+            replyMessage = `🏫 *Ranjeet Royal Academy (RRA) में आपका हार्दिक स्वागत है!* 🏫\n\nराम-राम सा! 🙏 मैं RRA का digital assistant हूँ।\n\n*1* 📝 एडमिशन की जानकारी\n*2* 💳 फीस और छात्र रिकॉर्ड खोजें\n*3* 🏖️ छुट्टियों की जानकारी\n*4* 📞 स्कूल मैनेजमेंट नंबर\n*5* ✍️ शिकायत या सुझाव\n*6* 🚌 स्कूल गाड़ी /驱动 / ड्राइवर नंबर\n*7* 🏫 स्कूल खुलने का समय\n\n_कृपया अपनी आवश्यकता अनुसार नंबर दबाएं।_`;
         } 
         else if (userText === "1") { replyMessage = `📝 *Admission ki Jankari:*\nNursery se 10th tak ke admission chalu hain.\n🔗 *Online Form Link:* https://core.uolo.com/enquiry/MTE1Mjk \nAap school aakar bhi form le sakte hain.`; }
         else if (userText === "2") { replyMessage = `🔍 *Data Khojne ka Tareeka:*\nFees aur detail janne ke liye bachche ka:\n*Name*, *SR Number*, *Mobile Number* ya *Gaon ka naam* type karke bhejein.\n*(Udaharann: Rahul ya 0400 ya Pada)*`; }
