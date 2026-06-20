@@ -1,7 +1,7 @@
 const express = require("express");
 const axios = require("axios");
 const fs = require("fs");
-const { GoogleGenerativeAI } = require("@google/generative-ai"); // 🌟 Naya Google AI SDK 🌟
+const { GoogleGenerativeAI } = require("@google/generative-ai"); 
 
 const app = express();
 app.use(express.json());
@@ -15,9 +15,9 @@ const PHONE_NUMBER_ID = "1152692744596700";
 const KAILASH_JI = "918955250697"; 
 const ROHITASHV_JI = "918058039415"; 
 
-// 🧠 AI CHATBOT KEY (Aapki Nayi AQ Key) 🧠
-const GEMINI_API_KEY = "AQ.Ab8RN6JXUV5EzsqswEL1UVJZWtzTqlJKLnptQVtTQOWPcerSvA"; 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY); // 🌟 Setup Google AI SDK 🌟
+// 🧠 AI CHATBOT KEY (Ab Render ke secret locker se aayegi) 🧠
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY); 
 // ==========================================
 
 // ==========================================
@@ -104,6 +104,9 @@ loadExcelData();
 // 🧠 AI CHAT ENGINE (Lambi Baat, Sanskar aur School Hith)
 // ==========================================
 async function getSmartAIReply(userMessage) {
+    if (!GEMINI_API_KEY) {
+        return `राम-राम सा! 🙏 कृपया सिस्टम एडमिन को सूचित करें कि AI Key सर्वर में सेट नहीं है।`;
+    }
     try {
         let holidayKnowledge = "";
         if (Object.keys(holidaysByMonth).length > 0) {
@@ -132,7 +135,6 @@ async function getSmartAIReply(userMessage) {
 
         यूजर का संदेश: "${userMessage}"`;
 
-        // 🌟 Naya Tarika API Call Karne Ka 🌟
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const result = await model.generateContent(prompt);
         return result.response.text();
@@ -262,7 +264,7 @@ app.post("/webhook", async (req, res) => {
                 }
             }
 
-            let stopWords = ['ki', 'ka', 'ko', 'fees', 'fee', 'balance', 'record', 'detail', 'batao', 'bataiye', 'bataen', 'dikhao', 'check', 'karein', 'karo', 'hai', 'hain', 'की', 'का', 'को', 'फीस', 'बताओ', 'बताइए', 'बताएं', 'बताओ', 'दिखाओ', 'चेक', 'करो', 'करें', 'है', 'हैं', 'मेरे', 'बच्चे', 'का', 'रिकॉर्ड', 'बकाया', 'डिटेल', 'जानकारी', 'बताओं', 'दिखाओ', 'दिखाइए'];
+            let stopWords = ['ki', 'ka', 'ko', 'fees', 'fee', 'balance', 'record', 'detail', 'batao', 'bataiye', 'bataen', 'dikhao', 'check', 'karein', 'karo', 'hai', 'hain', 'की', 'का', 'को', 'फीस', 'बताओ', 'बताइए', 'बताएं', 'दिखाओ', 'चेक', 'करो', 'करें', 'है', 'हैं', 'मेरे', 'बच्चे', 'रिकॉर्ड', 'बकाया', 'डिटेल', 'जानकारी', 'दिखाइए'];
             let cleanWords = userText.split(' ').filter(w => !stopWords.includes(w) && w.trim().length > 0);
             let cleanQuery = cleanWords.join(' ').trim();
 
@@ -316,3 +318,4 @@ app.post("/webhook", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 RRA Server port ${PORT} par chalu hai`));
+                 
