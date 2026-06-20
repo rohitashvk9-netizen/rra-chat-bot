@@ -24,6 +24,8 @@ if(GEMINI_API_KEY) {
 }
 // ==========================================
 
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
 // ==========================================
 // 🧠 SMART SPELLING CHECKER
 // ==========================================
@@ -134,21 +136,18 @@ async function getSmartAIReply(userMessage) {
         1. बातचीत की शुरुआत हमेशा आदरपूर्वक 'राम-राम सा! 🙏' से करें। वाक्य में 'जी', 'आप', 'सधन्यवाद' का भरपूर सम्मानजनक उपयोग करें। आपका लहजा ऐसा होना चाहिए जैसे कोई आदरणीय गुरुजी साक्षात बात कर रहे हों।
         2. यदि यूजर स्कूल की छुट्टियों (Holidays), स्कूल दोबारा खुलने की तारीख या समय के बारे में प्राकृतिक भाषा में पूछे (जैसे: 'छुट्टी कब है', 'स्कूल कब खुलेगा', 'जून में कब छुट्टी है'), तो ऊपर दिए गए 'School Knowledge' को ध्यान से पढ़ें और सटीक तारीख व जानकारी अत्यंत आदर के साथ शुद्ध हिंदी में बताएं।
         3. यदि माता-पिता या बच्चे मोबाइल की लत से छुटकारा, पढ़ाई में मन न लगना, एकाग्रता बढ़ाना, लंबे समय तक बैठकर पूरा अध्याय कैसे पढ़ें, सुबह जल्दी उठना (ब्रह्म मुहूर्त के लाभ), समय पर पौष्टिक और ताजा भोजन करने, अच्छी नींद लेने तथा प्रतिदिन 5-10 मिनट ध्यान (Meditation) या प्राणायाम करने जैसी दिनचर्या के बारे में पूछें, तो उन्हें बहुत ही सुंदर, व्यावहारिक, मनोवैज्ञानिक और शिक्षाप्रद तरीके से पूरा विस्तार से समझाएं। 
-        4. बातचीत में स्वामी विवेकानंद, डॉ. एपीजे अब्दुल कलाम या महान विद्वानों के सकारात्मक और ऊर्जावान प्रेरक विचार (Motivational Quotes) शामिल करें ताकि बच्चों और पेरेंट्स में सकारात्मक ऊर्जा का संचार हो।
+        4. बातचीत में स्वामी विवेकानंद, डॉ. एपीजे अब्दुल कलाम या महान विद्वानों के सकारात्मक और ऊर्जावान प्रेरक विचार (Motivational Quotes) शामिल करें ताकि बच्चों and पेरेंट्स में सकारात्मक ऊर्जा का संचार हो।
         5. यदि कोई यूजर बिना किसी नाम या एसआर नंबर के केवल फीस या रिकॉर्ड की सामान्य बात करे (जैसे: 'मेरे बच्चे की फीस बताओ', 'डिटेल दिखाओ', 'फीस कितनी है'), तो उन्हें बहुत प्यार से समझाएं कि वे छात्र का नाम, एसआर नंबर (SR Number) या पंजीकृत मोबाइल नंबर लिखकर भेजें ताकि कंप्यूटर सिस्टम से सटीक रिकॉर्ड निकाला जा सके।
         6. हमेशा सकारात्मक, मर्यादित और शिक्षाप्रद बातें करें जो स्कूल के हित में हों। किसी भी अभद्र या गैर-शैक्षणिक बात का उत्तर न दें। पूरा जवाब केवल साफ और स्पष्ट हिंदी में होना चाहिए।
 
         यूजर का संदेश: "${userMessage}"`;
 
-        // 🌟 LATEST 2026 STABLE MODEL (gemini-3.5-flash) PAR SET KAR DIYA HAI 🌟
-        const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await model.generateContent(prompt);
         return result.response.text();
     } catch (error) {
         console.error("AI Error:", error.message);
-        
         sendWhatsAppMessage(ROHITASHV_JI, `🚨 *AI API FAIL ALERT:*\nGoogle API ne kaam karne se mana kar diya hai.\n*Error Ka Kaaran:* ${error.message}`);
-        
         return `राम-राम सा! 🙏 रंजीत रॉयल एकेडमी (RRA) मैनेजमेंट टीम आपके संदेश का पूरा सम्मान करती है। आपके इस विशेष सवाल या चर्चा के संदर्भ में उचित मार्गदर्शन के लिए आप सीधे हमारे विद्यालय कार्यालय में संपर्क कर सकते हैं या मुख्य मेनू के लिए *0* दबाएं। सधन्यवाद!`;
     }
 }
@@ -188,6 +187,73 @@ app.post("/webhook", async (req, res) => {
         }
 
         // ==========================================
+        // 🚀 SMART PERSONALIZED BROADCAST SYSTEM
+        // ==========================================
+        if ((from === ROHITASHV_JI || from === KAILASH_JI) && rawUserText.toUpperCase().startsWith("#SENDALL")) {
+            let broadcastMsg = rawUserText.substring(8).trim(); 
+            
+            if (broadcastMsg === "") {
+                sendWhatsAppMessage(from, "❌ Error: मैसेज खाली है। सही तरीका: #SENDALL आपका मैसेज यहाँ लिखें।");
+                return res.sendStatus(200);
+            }
+
+            sendWhatsAppMessage(from, `🚀 *Personalized ब्रॉडकास्ट शुरू हो गया है!*\nयह मैसेज सभी पेरेंट्स को उनके बच्चे के नाम और क्लास के साथ भेजा जा रहा है। कृपया कुछ मिनट प्रतीक्षा करें।\n\n*मूल संदेश:* ${broadcastMsg}`);
+
+            // Background parsing and customized delivery
+            (async () => {
+                let allRecords = Object.values(unifiedData);
+                let successCount = 0;
+                let totalProcessed = 0;
+                let processedKeys = new Set(); // Sibling spamming aur duplicate se bachne ke liye
+
+                for(let r of allRecords) {
+                    if(r.mobile && r.mobile !== "N/A") {
+                        let cleanMobile = r.mobile.replace(/\D/g, "");
+                        let phone = "";
+                        if(cleanMobile.length === 10) phone = "91" + cleanMobile;
+                        else if (cleanMobile.length === 12 && cleanMobile.startsWith("91")) phone = cleanMobile;
+
+                        if (phone) {
+                            // Unique key uniquely identifies specific student-phone record
+                            let uniqueKey = `${phone}_${r.name}_${r.cls}`;
+                            if (processedKeys.has(uniqueKey)) continue;
+                            processedKeys.add(uniqueKey);
+                            
+                            totalProcessed++;
+                            
+                            let studentName = r.name || "विद्यार्थी";
+                            let studentClass = r.cls || "N/A";
+                            
+                            // 🌟 AAPKA SANSHODHIT PERSONALIZED MESSAGE FORMAT 🌟
+                            let personalizedMsg = `👤 *Dear ${studentName}, Class: ${studentClass}*\n\n` +
+                                                  `${broadcastMsg}\n\n` +
+                                                  `🤝 *RRA AI Chatbot se judne ke liye dhanyawad!*\n` +
+                                                  `📞 Adhik jankari ke liye is chatbot par chat karein ya management team (Kailash Ji: 8955250697, Rohitashv Ji: 8058039415) se sampark karein.`;
+
+                            try {
+                                await axios({
+                                    method: "POST",
+                                    url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+                                    data: { messaging_product: "whatsapp", to: phone, text: { body: personalizedMsg } },
+                                    headers: { Authorization: `Bearer ${FB_ACCESS_TOKEN}`, "Content-Type": "application/json" }
+                                });
+                                successCount++;
+                            } catch(e) {
+                                console.error(`Error sending to ${phone}:`, e.message);
+                            }
+                            await sleep(1500); // Policy delay to keep number safe
+                        }
+                    }
+                }
+                
+                // Final Admin Report
+                sendWhatsAppMessage(from, `📢 *ब्रॉडकास्ट सफलतापुर्वक पूरा हुआ!*\n\n✅ कुल ${successCount}/${totalProcessed} अभिभावकों को personalized संदेश भेज दिए गए हैं।`);
+            })();
+
+            return res.sendStatus(200);
+        }
+
+        // ==========================================
         // 🌟 ICEBREAKERS (BUTTONS) KA LOGIC 🌟
         // ==========================================
         if (userText === "school management number") {
@@ -212,7 +278,7 @@ app.post("/webhook", async (req, res) => {
         }
 
         // ==========================================
-        // 🚨 COMPLAINT (Shikayat) LOGIC - English & Hindi
+        // 🚨 COMPLAINT (Shikayat) LOGIC
         // ==========================================
         if (userText.includes("shikayat") || userText.includes("शिकायत") || userText.includes("complaint") || userText.includes("sujhav") || userText.includes("सुझाव") || userText.includes("problem")) {
             replyMessage = `🙏 हम आपकी बात का पूरा सम्मान करते हैं। आपकी समस्या या सुझाव को सीधे मैनेजमेंट (कैलाश जी और रोहितशव जी) तक पहुँचा दिया गया है। हम जल्द ही इस पर उचित और सकारात्मक कदम उठाएंगे।`;
@@ -327,4 +393,3 @@ app.post("/webhook", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 RRA Server port ${PORT} par chalu hai`));
-                            
