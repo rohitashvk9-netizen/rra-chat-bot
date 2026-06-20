@@ -140,8 +140,8 @@ async function getSmartAIReply(userMessage) {
 
         यूजर का संदेश: "${userMessage}"`;
 
-        // 🌟 MODEL WAPAS GEMINI-1.5-FLASH KAR DIYA HAI JO 100% SUPPORTED HAI 🌟
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // 🌟 LATEST 2026 STABLE MODEL (gemini-3.5-flash) PAR SET KAR DIYA HAI 🌟
+        const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
         const result = await model.generateContent(prompt);
         return result.response.text();
     } catch (error) {
@@ -327,4 +327,4 @@ app.post("/webhook", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 RRA Server port ${PORT} par chalu hai`));
-            
+                            
