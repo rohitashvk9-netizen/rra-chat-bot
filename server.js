@@ -15,7 +15,7 @@ const PHONE_NUMBER_ID = "1152692744596700";
 const KAILASH_JI = "918955250697"; 
 const ROHITASHV_JI = "918058039415"; 
 
-// 🧠 AI CHATBOT KEY (Render se aayegi, aur extra space automatically hat jayega) 🧠
+// 🧠 AI CHATBOT KEY (Render se aayegi) 🧠
 const rawKey = process.env.GEMINI_API_KEY || "";
 const GEMINI_API_KEY = rawKey.trim(); 
 let genAI = null;
@@ -140,13 +140,13 @@ async function getSmartAIReply(userMessage) {
 
         यूजर का संदेश: "${userMessage}"`;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // 🌟 MODEL BADAL DIYA GAYA HAI -> "gemini-pro" 🌟
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         const result = await model.generateContent(prompt);
         return result.response.text();
     } catch (error) {
         console.error("AI Error:", error.message);
         
-        // 🚨 YAHAN SE ADMIN KO CHUPKE SE ASLI ERROR BHEJA JAYEGA 🚨
         sendWhatsAppMessage(ROHITASHV_JI, `🚨 *AI API FAIL ALERT:*\nGoogle API ne kaam karne se mana kar diya hai.\n*Error Ka Kaaran:* ${error.message}`);
         
         return `राम-राम सा! 🙏 रंजीत रॉयल एकेडमी (RRA) मैनेजमेंट टीम आपके संदेश का पूरा सम्मान करती है। आपके इस विशेष सवाल या चर्चा के संदर्भ में उचित मार्गदर्शन के लिए आप सीधे हमारे विद्यालय कार्यालय में संपर्क कर सकते हैं या मुख्य मेनू के लिए *0* दबाएं। सधन्यवाद!`;
@@ -327,4 +327,4 @@ app.post("/webhook", async (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 RRA Server port ${PORT} par chalu hai`));
-                        
+                                              
