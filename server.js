@@ -15,20 +15,15 @@ const PHONE_NUMBER_ID = "1152692744596700";
 const KAILASH_JI = "918955250697"; 
 const ROHITASHV_JI = "918058039415"; 
 
-// 🧠 AI CHATBOT KEY (Render se aayegi) 🧠
 const rawKey = process.env.GEMINI_API_KEY || "";
 const GEMINI_API_KEY = rawKey.trim(); 
 let genAI = null;
 if(GEMINI_API_KEY) {
     genAI = new GoogleGenerativeAI(GEMINI_API_KEY); 
 }
-// ==========================================
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// ==========================================
-// 🧠 SMART SPELLING CHECKER
-// ==========================================
 function getEditDistance(a, b) {
     if(a.length === 0) return b.length; 
     if(b.length === 0) return a.length; 
@@ -47,9 +42,6 @@ function getEditDistance(a, b) {
     return matrix[b.length][a.length];
 }
 
-// ==========================================
-// 📂 DATA LOAD KARNA (Students, Fees, Holidays & Staff)
-// ==========================================
 let unifiedData = {};
 let staffData = {};
 let holidaysByMonth = {};
@@ -59,7 +51,6 @@ function loadExcelData() {
     staffData = {};
     holidaysByMonth = {};
 
-    // 1. Load Students
     try {
         let sLines = fs.readFileSync('students.csv', 'utf8').split('\n');
         let sStarted = false;
@@ -73,9 +64,8 @@ function loadExcelData() {
                 }
             }
         }
-    } catch(e) { console.log("Students file load error or not found"); }
+    } catch(e) {}
 
-    // 2. Load Fees
     try {
         let fLines = fs.readFileSync('fees.csv', 'utf8').split('\n');
         let fStarted = false;
@@ -93,7 +83,6 @@ function loadExcelData() {
         }
     } catch(e) {}
 
-    // 3. Load Holidays
     try {
         let hLines = fs.readFileSync('holidays.csv', 'utf8').split('\n');
         const monthNames = {"01":"January", "02":"February", "03":"March", "04":"April", "05":"May", "06":"June", "07":"July", "08":"August", "09":"September", "10":"October", "11":"November", "12":"December"};
@@ -111,7 +100,6 @@ function loadExcelData() {
         }
     } catch(e) {}
 
-    // 4. Load Staff Data (Naya Block)
     try {
         if (fs.existsSync('staff.csv')) {
             let stLines = fs.readFileSync('staff.csv', 'utf8').split('\n');
@@ -127,18 +115,12 @@ function loadExcelData() {
                 }
             }
         }
-    } catch(e) { console.error("Staff file error:", e.message); }
+    } catch(e) {}
 }
 loadExcelData();
 
-// ==========================================
-// 🧠 AI CHAT ENGINE
-// ==========================================
 async function getSmartAIReply(userMessage) {
-    if (!genAI) {
-        sendWhatsAppMessage(ROHITASHV_JI, `🚨 *Admin Alert:* Render mein GEMINI_API_KEY set nahi hai ya khali hai!`);
-        return `राम-राम सा! 🙏 कृपया सिस्टम एडमिन को सूचित करें कि AI Key सर्वर में सेट नहीं है।`;
-    }
+    if (!genAI) return `राम-राम सा! 🙏 कृपया सिस्टम एडमिन को सूचित करें कि AI Key सर्वर में सेट नहीं है।`;
     try {
         let holidayKnowledge = "";
         if (Object.keys(holidaysByMonth).length > 0) {
@@ -158,12 +140,14 @@ async function getSmartAIReply(userMessage) {
         - स्कूल की आधिकारिक छुट्टियां (Holidays Data): ${holidayKnowledge}
 
         बातचीत के कड़े नियम (Strict Rules for Response):
-        1. बातचीत की शुरुआत हमेशा आदरपूर्वक 'राम-राम सा! 🙏' से करें। वाक्य में 'जी', 'आप', 'सधन्यवाद' का भरपूर सम्मानजनक उपयोग करें। आपका लहजा ऐसा होना चाहिए जैसे कोई आदरणीय गुरुजी साक्षात बात कर रहे हों।
-        2. यदि यूजर स्कूल की छुट्टियों (Holidays), स्कूल दोबारा खुलने की तारीख या समय के बारे में प्राकृतिक भाषा में पूछे (जैसे: 'छुट्टी कब है', 'स्कूल कब खुलेगा', 'जून में कब छुट्टी है'), तो ऊपर दिए गए 'School Knowledge' को ध्यान से पढ़ें और सटीक तारीख व जानकारी अत्यंत आदर के साथ शुद्ध हिंदी में बताएं।
-        3. यदि माता-पिता या बच्चे मोबाइल की लत से छुटकारा, पढ़ाई में मन न लगना, एकाग्रता बढ़ाना, लंबे समय तक बैठकर पूरा अध्याय कैसे पढ़ें, सुबह जल्दी उठना (ब्रह्म मुहूर्त के लाभ), समय पर पौष्टिक और ताजा भोजन करने, अच्छी नींद लेने तथा प्रतिदिन 5-10 मिनट ध्यान (Meditation) या प्राणायाम करने जैसी दिनचर्या के बारे में पूछें, तो उन्हें बहुत ही सुंदर, व्यावहारिक, मनोवैज्ञानिकและ शिक्षाप्रद तरीके से पूरा विस्तार से समझाएं। 
-        4. बातचीत में स्वामी विवेकानंद, डॉ. एपीजे अब्दुल कलाम या महान विद्वानों के सकारात्मक और ऊर्जावान प्रेरक विचार (Motivational Quotes) शामिल करें ताकि बच्चों और पेरेंट्स में सकारात्मक ऊर्जा का संचार हो।
-        5. यदि कोई यूजर बिना किसी नाम या एसआर नंबर के केवल फीस या रिकॉर्ड की सामान्य बात करे (जैसे: 'मेरे बच्चे की फीस बताओ', 'डिटेल दिखाओ', 'फीस कितनी है'), तो उन्हें बहुत प्यार से समझाएं कि वे छात्र का नाम, एसआर नंबर (SR Number) या पंजीकृत मोबाइल नंबर लिखकर भेजें ताकि कंप्यूटर सिस्टम से सटीक रिकॉर्ड निकाला जा सके।
-        6. हमेशा सकारात्मक, मर्यादित और शिक्षाप्रद बातें करें जो स्कूल के हित में हों। किसी भी अभद्र या गैर-शैक्षणिक बात का उत्तर न दें। पूरा जवाब केवल साफ और स्पष्ट हिंदी में होना चाहिए।
+        1. बातचीत की शुरुआत हमेशा आदरपूर्वक 'राम-राम सा! 🙏' से करें।
+        2. यदि यूजर स्कूल की छुट्टियों (Holidays), स्कूल दोबारा खुलने की तारीख या समय के बारे में प्राकृतिक भाषा में पूछे, तो सटीक जानकारी दें।
+        3. यदि माता-पिता या बच्चे मोबाइल की लत से छुटकारा, पढ़ाई में मन न लगना, एकाग्रता बढ़ाना आदि के बारे में पूछें, तो उन्हें मनोवैज्ञानिक और शिक्षाप्रद तरीके से समझाएं। 
+        4. यदि कोई मैनेजमेंट का नंबर मांगे, तो उन्हें सीधे कॉल और व्हाट्सएप लिंक दें:
+           - कैलाश जी: कॉल +918955250697, व्हाट्सएप wa.me/918955250697
+           - रोहितशव जी: कॉल +918058039415, व्हाट्सएप wa.me/918058039415
+           - बॉट: कॉल +911464294852, व्हाट्सएप wa.me/911464294852
+        5. हमेशा सकारात्मक, मर्यादित और शिक्षाप्रद बातें करें।
 
         यूजर का संदेश: "${userMessage}"`;
 
@@ -171,14 +155,12 @@ async function getSmartAIReply(userMessage) {
         const result = await model.generateContent(prompt);
         return result.response.text();
     } catch (error) {
-        console.error("AI Error:", error.message);
-        sendWhatsAppMessage(ROHITASHV_JI, `🚨 *AI API FAIL ALERT:*\nGoogle API ne kaam karne se mana kar diya hai.\n*Error Ka Kaaran:* ${error.message}`);
         return `राम-राम सा! 🙏 रंजीत रॉयल एकेडमी (RRA) मैनेजमेंट टीम आपके संदेश का पूरा सम्मान करती है। आपके इस विशेष सवाल या चर्चा के संदर्भ में उचित मार्गदर्शन के लिए आप सीधे हमारे विद्यालय कार्यालय में संपर्क कर सकते हैं या मुख्य मेनू के लिए *0* दबाएं। सधन्यवाद!`;
     }
 }
 
 // ==========================================
-// 📨 Message Bhejne Ka System
+// 📨 Normal Message Bhejne Ka System
 // ==========================================
 async function sendWhatsAppMessage(toNumber, messageText) {
     try {
@@ -189,6 +171,37 @@ async function sendWhatsAppMessage(toNumber, messageText) {
             headers: { Authorization: `Bearer ${FB_ACCESS_TOKEN}`, "Content-Type": "application/json" }
         });
     } catch (error) { console.error("❌ Error:", error.message); }
+}
+
+// ==========================================
+// 🌟 VIP TEMPLATE Message Bhejne Ka System (Bina 24h Block Ke) 🌟
+// ==========================================
+async function sendWhatsAppTemplate(toNumber, personName, mainMessage) {
+    try {
+        await axios({
+            method: "POST",
+            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            data: { 
+                messaging_product: "whatsapp", 
+                to: toNumber, 
+                type: "template",
+                template: {
+                    name: "rra_notice_update", 
+                    language: { code: "hi" },
+                    components: [
+                        {
+                            type: "body",
+                            parameters: [
+                                { type: "text", text: personName }, 
+                                { type: "text", text: mainMessage } 
+                            ]
+                        }
+                    ]
+                }
+            },
+            headers: { Authorization: `Bearer ${FB_ACCESS_TOKEN}`, "Content-Type": "application/json" }
+        });
+    } catch (error) { console.error("❌ Template Error:", error.message); }
 }
 
 app.get("/webhook", (req, res) => {
@@ -212,7 +225,7 @@ app.post("/webhook", async (req, res) => {
         }
 
         // ==========================================
-        // 🚀 1. STUDENT PERSONALIZED BROADCAST SYSTEM
+        // 🚀 1. STUDENT VIP BROADCAST SYSTEM
         // ==========================================
         if ((from === ROHITASHV_JI || from === KAILASH_JI) && (rawUserText.toUpperCase().startsWith("#SENDSTUDENTS") || rawUserText.toUpperCase().startsWith("#SENDALL"))) {
             let offset = rawUserText.toUpperCase().startsWith("#SENDSTUDENTS") ? 13 : 8;
@@ -223,7 +236,7 @@ app.post("/webhook", async (req, res) => {
                 return res.sendStatus(200);
             }
 
-            sendWhatsAppMessage(from, `🚀 *Students ब्रॉडकास्ट शुरू हो गया है!*\nयह मैसेज सभी पेरेंट्स को उनके बच्चे के नाम और क्लास के साथ भेजा जा रहा है।`);
+            sendWhatsAppMessage(from, `🚀 *Students VIP ब्रॉडकास्ट शुरू हो गया है!*\nयह मैसेज 24 घंटे के नियम को पार करके सभी को भेजा जा रहा है।`);
 
             (async () => {
                 let allRecords = Object.values(unifiedData);
@@ -245,34 +258,20 @@ app.post("/webhook", async (req, res) => {
                             totalProcessed++;
                             
                             let studentName = r.name || "विद्यार्थी";
-                            let studentClass = r.cls || "N/A";
-                            
-                            let personalizedMsg = `👤 *Dear ${studentName}, Class: ${studentClass}*\n\n` +
-                                                  `${broadcastMsg}\n\n` +
-                                                  `🤝 *RRA AI Chatbot se judne ke liye dhanyawad!*\n` +
-                                                  `📞 Adhik jankari ke liye is chatbot par chat karein ya management team (Kailash Ji: 8955250697, Rohitashv Ji: 8058039415) se sampark karein.`;
-
-                            try {
-                                await axios({
-                                    method: "POST",
-                                    url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
-                                    data: { messaging_product: "whatsapp", to: phone, text: { body: personalizedMsg } },
-                                    headers: { Authorization: `Bearer ${FB_ACCESS_TOKEN}`, "Content-Type": "application/json" }
-                                });
-                                successCount++;
-                            } catch(e) {}
+                            await sendWhatsAppTemplate(phone, studentName, broadcastMsg);
+                            successCount++;
                             await sleep(1500); 
                         }
                     }
                 }
-                sendWhatsAppMessage(from, `📢 *Students ब्रॉडकास्ट पूरा हुआ!*\n\n✅ कुल ${successCount}/${totalProcessed} अभिभावकों को personalized संदेश भेज दिए गए हैं।`);
+                sendWhatsAppMessage(from, `📢 *Students ब्रॉडकास्ट पूरा हुआ!*\n\n✅ कुल ${successCount}/${totalProcessed} अभिभावकों को VIP संदेश भेज दिए गए हैं।`);
             })();
 
             return res.sendStatus(200);
         }
 
         // ==========================================
-        // 🚀 2. STAFF PERSONALIZED BROADCAST SYSTEM (Naya Block)
+        // 🚀 2. STAFF VIP BROADCAST SYSTEM
         // ==========================================
         if ((from === ROHITASHV_JI || from === KAILASH_JI) && rawUserText.toUpperCase().startsWith("#SENDSTAFF")) {
             let broadcastMsg = rawUserText.substring(10).trim(); 
@@ -282,7 +281,7 @@ app.post("/webhook", async (req, res) => {
                 return res.sendStatus(200);
             }
 
-            sendWhatsAppMessage(from, `🚀 *Staff ब्रॉडकास्ट शुरू हो गया है!*\nयह मैसेज सभी स्टाफ मेंबर्स को उनके नाम और पद (Designation) के साथ भेजा जा रहा है।`);
+            sendWhatsAppMessage(from, `🚀 *Staff VIP ब्रॉडकास्ट शुरू हो गया है!*\nयह मैसेज सभी स्टाफ मेंबर्स को भेजा जा रहा है।`);
 
             (async () => {
                 let allStaff = Object.values(staffData);
@@ -291,7 +290,7 @@ app.post("/webhook", async (req, res) => {
                 let processedKeys = new Set();
 
                 if(allStaff.length === 0) {
-                    sendWhatsAppMessage(from, "⚠️ Alert: staff.csv फाइल खाली है या सर्वर पर लोड नहीं हो पाई है। कृपया फाइल चेक करें।");
+                    sendWhatsAppMessage(from, "⚠️ Alert: staff.csv फाइल खाली है।");
                     return;
                 }
 
@@ -308,38 +307,33 @@ app.post("/webhook", async (req, res) => {
                             totalProcessed++;
                             
                             let staffName = s.name || "स्टाफ सदस्य";
-                            let staffRole = s.designation || "Staff";
-                            
-                            // 🌟 STAFF KE LIYE REPUTED & PROFESSIONAL FORMAT 🌟
-                            let personalizedMsg = `👤 *Dear ${staffName}, Designation: ${staffRole}*\n\n` +
-                                                  `${broadcastMsg}\n\n` +
-                                                  `🤝 *RRA Management Team se judne ke liye dhanyawad!*\n` +
-                                                  `📞 Adhik jankari ke liye is chatbot par chat karein ya management team (Kailash Ji: 8955250697, Rohitashv Ji: 8058039415) se seedhe sampark karein.`;
-
-                            try {
-                                await axios({
-                                    method: "POST",
-                                    url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
-                                    data: { messaging_product: "whatsapp", to: phone, text: { body: personalizedMsg } },
-                                    headers: { Authorization: `Bearer ${FB_ACCESS_TOKEN}`, "Content-Type": "application/json" }
-                                });
-                                successCount++;
-                            } catch(e) {}
+                            await sendWhatsAppTemplate(phone, staffName, broadcastMsg);
+                            successCount++;
                             await sleep(1500); 
                         }
                     }
                 }
-                sendWhatsAppMessage(from, `📢 *Staff ब्रॉडकास्ट पूरा हुआ!*\n\n✅ कुल ${successCount}/${totalProcessed} स्टाफ सदस्यों को आदर सहित संदेश भेज दिए गए हैं।`);
+                sendWhatsAppMessage(from, `📢 *Staff ब्रॉडकास्ट पूरा हुआ!*\n\n✅ कुल ${successCount}/${totalProcessed} स्टाफ सदस्यों को VIP संदेश भेज दिए गए हैं।`);
             })();
 
             return res.sendStatus(200);
         }
 
         // ==========================================
-        // 🌟 ICEBREAKERS (BUTTONS) KA LOGIC 🌟
+        // 🌟 ICEBREAKERS & CLICK-TO-CALL LOGIC 🌟
         // ==========================================
-        if (userText === "school management number") {
-            replyMessage = "🏫 *Ranjeet Royal Academy Management*\n\n👨‍💼 Kailash Ji (Director): +91 8955250697\n👨‍💻 Rohitashv Ji (Manager): +91 8058039415\n\n🙏 आप किसी भी समय शिक्षा संबंधी जानकारी के लिए संपर्क कर सकते हैं।";
+        if (userText === "school management number" || userText === "4") {
+            replyMessage = `🏫 *Ranjeet Royal Academy Management*\n\n` +
+                           `👨‍💼 *कैलाश जी (Director)*\n` +
+                           `📞 कॉल: +918955250697\n` +
+                           `💬 व्हाट्सएप: wa.me/918955250697\n\n` +
+                           `👨‍💻 *रोहितशव जी (Manager)*\n` +
+                           `📞 कॉल: +918058039415\n` +
+                           `💬 व्हाट्सएप: wa.me/918058039415\n\n` +
+                           `🤖 *RRA Digital Assistant (Bot)*\n` +
+                           `📞 कॉल: +911464294852\n` +
+                           `💬 व्हाट्सएप: wa.me/911464294852\n\n` +
+                           `🙏 _(सीधा संपर्क करने के लिए ऊपर नीले रंग के लिंक/नंबर पर क्लिक करें)_`;
             await sendWhatsAppMessage(from, replyMessage);
             return res.sendStatus(200);
         }
@@ -363,9 +357,9 @@ app.post("/webhook", async (req, res) => {
         // 🚨 COMPLAINT (Shikayat) LOGIC
         // ==========================================
         if (userText.includes("shikayat") || userText.includes("शिकायत") || userText.includes("complaint") || userText.includes("sujhav") || userText.includes("सुझाव") || userText.includes("problem")) {
-            replyMessage = `🙏 हम आपकी बात का पूरा सम्मान करते हैं। आपकी समस्या या सुझाव को सीधे मैनेजमेंट (कैलाश जी और रोहितशव जी) तक पहुँचा दिया गया है। हम जल्द ही इस पर उचित और सकारात्मक कदम उठाएंगे।`;
+            replyMessage = `🙏 हम आपकी बात का पूरा सम्मान करते हैं। आपकी समस्या या सुझाव को सीधे मैनेजमेंट (कैलाश जी और रोहितशव जी) तक पहुँचा दिया गया है।`;
             
-            let mgmtMsg = `🚨 *RRA ERP Alert: Nayi Shikayat/Sujhav*\n\n*Parent/Number:* +${from}\n*Message:* ${rawUserText}\n\n_Kripya is par dhyan dein._`;
+            let mgmtMsg = `🚨 *RRA ERP Alert: Nayi Shikayat/Sujhav*\n\n*Parent/Number:* +${from}\n*Message:* ${rawUserText}`;
             sendWhatsAppMessage(KAILASH_JI, mgmtMsg);
             sendWhatsAppMessage(ROHITASHV_JI, mgmtMsg);
             
@@ -377,31 +371,16 @@ app.post("/webhook", async (req, res) => {
         // 🤖 BOT MENU
         // ==========================================
         if (["hi", "hello", "नमस्ते", "namaste", "0", "help", "राम राम", "हाय"].includes(userText)) {
-            replyMessage = `🏫 *Ranjeet Royal Academy (RRA) में आपका हार्दिक स्वागत है!* 🏫\n\nराम-राम सा! 🙏 मैं RRA का digital assistant हूँ।\n\n*1* 📝 एडमिशन की जानकारी\n*2* 💳 फीस और छात्र रिकॉर्ड खोजें\n*3* 🏖️ छुट्टियों की जानकारी\n*4* 📞 स्कूल मैनेजमेंट नंबर\n*5* ✍️ शिकायत या सुझाव\n*6* 🚌 स्कूल गाड़ी /驱动 / ड्राइवर नंबर\n*7* 🏫 स्कूल खुलने का समय\n\n_कृपया अपनी आवश्यकता अनुसार नंबर दबाएं।_`;
+            replyMessage = `🏫 *Ranjeet Royal Academy (RRA) में आपका हार्दिक स्वागत है!* 🏫\n\nराम-राम सा! 🙏 मैं RRA का digital assistant हूँ।\n\n*1* 📝 एडमिशन की जानकारी\n*2* 💳 फीस और छात्र रिकॉर्ड खोजें\n*3* 🏖️ छुट्टियों की जानकारी\n*4* 📞 स्कूल मैनेजमेंट नंबर\n*5* ✍️ शिकायत या सुझाव\n*6* 🚌 स्कूल गाड़ी / ड्राइवर नंबर\n*7* 🏫 स्कूल खुलने का समय\n\n_कृपया अपनी आवश्यकता अनुसार नंबर दबाएं।_`;
         } 
         else if (userText === "1") { replyMessage = `📝 *Admission ki Jankari:*\nNursery se 10th tak ke admission chalu hain.\n🔗 *Online Form Link:* https://core.uolo.com/enquiry/MTE1Mjk \nAap school aakar bhi form le sakte hain.`; }
         else if (userText === "2") { replyMessage = `🔍 *Data Khojne ka Tareeka:*\nFees aur detail janne ke liye bachche ka:\n*Name*, *SR Number*, *Mobile Number* ya *Gaon ka naam* type karke bhejein.\n*(Udaharann: Rahul ya 0400 ya Pada)*`; }
         else if (userText === "3") { 
-            replyMessage = `🏖️ *School ki Chhuttiyan:*\n* Har Sunday ko school band rahega.\n* Shivira panchang ke anusar chhuttiyan rahengi.\n\n`;
-            if(Object.keys(holidaysByMonth).length > 0) {
-                for(let month in holidaysByMonth) {
-                    replyMessage += `🗓️ *${month} ki chhuttiyan:*\n`;
-                    holidaysByMonth[month].forEach(h => replyMessage += `${h}\n`);
-                    replyMessage += `\n`;
-                }
-            } else { replyMessage += `Abhi kisi vishesh chhutti ka data update nahi hai.`; }
+            replyMessage = `🏖️ *School ki Chhuttiyan:*\n* Har Sunday ko school band rahega.\n* Shivira panchang ke anusar chhuttiyan rahengi.`; 
         }
-        else if (userText === "4") { replyMessage = `📞 *Sampark karein:*\n* Kailash Ji (Director): 8955250697\n* Rohitashv Ji (Manager): 8058039415`; }
         else if (userText === "5") { replyMessage = `✍️ *Shikayat/Sujhav:*\nApni shikayat ke aage 'शिकायत' ya 'Complaint' likhkar bhejein.\nExample: *शिकायत: Mere bachche (SR 0400) ka I-Card nahi mila.*`; }
         else if (userText === "6") { 
-            replyMessage = `🚌 *स्कूल गाड़ी / ड्राइवर और रूट की जानकारी:* \n\n` +
-                           `* 🧑‍✈️ बलराम जी: 9928997400 (रूट: खोहरा, नांगल)\n` +
-                           `* 🧑‍✈️ गणेश जी: 7610015076 (रूट: भगत का बास)\n` +
-                           `* 🧑‍✈️ रामू जी: 9784136402 (रूट: लापला, नयागांव)\n` +
-                           `* 🧑‍✈️ राजेश जी: 9772161126 (रूट: ईसवाना, माचड़ी)\n` +
-                           `* 🧑‍✈️ मनोहर जी: 8058123195 (रूट: बेरवांडा, नांगल)\n` +
-                           `* 🧑‍✈️ धंसी जी: 9024283273 (रूट: गूलर का बास, माचड़ी)\n\n` +
-                           `🙏 _(मेनू के लिए *0* भेजें)_`;
+            replyMessage = `🚌 *स्कूल गाड़ी / ड्राइवर और रूट की जानकारी:* \n\n* 🧑‍✈️ बलराम जी: +919928997400\n* 🧑‍✈️ गणेश जी: +917610015076\n* 🧑‍✈️ रामू जी: +919784136402\n* 🧑‍✈️ राजेश जी: +919772161126\n* 🧑‍✈️ मनोहर जी: +918058123195\n* 🧑‍✈️ धंसी जी: +919024283273\n\n🙏 _(कॉल करने के लिए नंबर पर क्लिक करें)_`; 
         }
         else if (userText === "7") { replyMessage = `🏫 *School Khulne ki Suchna:*\nSchool *29 June* se punah khul rahe hain.\n⏰ *Samay:* Subah 08:00 se Dophar 02:00 baje tak.\n🙏 सभी बच्चों का स्वागत है!`; }
         
@@ -410,21 +389,17 @@ app.post("/webhook", async (req, res) => {
         // ==========================================
         else {
             let matches = [];
-            
             let numbersInText = rawUserText.match(/\d+/g);
-            let searchSR = "";
-            let searchMob = "";
+            let searchSR = ""; let searchMob = "";
             if (numbersInText) {
                 for (let num of numbersInText) {
                     if (num.length >= 8) searchMob = num; 
                     else if (num.length >= 1 && num.length <= 5) searchSR = num; 
                 }
             }
-
             let stopWords = ['ki', 'ka', 'ko', 'fees', 'fee', 'balance', 'record', 'detail', 'batao', 'bataiye', 'bataen', 'dikhao', 'check', 'karein', 'karo', 'hai', 'hain', 'की', 'का', 'को', 'फीस', 'बताओ', 'बताइए', 'बताएं', 'दिखाओ', 'चेक', 'करो', 'करें', 'है', 'हैं', 'मेरे', 'बच्चे', 'रिकॉर्ड', 'बकाया', 'डिटेल', 'जानकारी', 'दिखाइए'];
             let cleanWords = userText.split(' ').filter(w => !stopWords.includes(w) && w.trim().length > 0);
             let cleanQuery = cleanWords.join(' ').trim();
-
             let allRecords = Object.values(unifiedData);
 
             for (let r of allRecords) {
@@ -453,7 +428,7 @@ app.post("/webhook", async (req, res) => {
                 replyMessage = `🔍 *Aapke Data ke Natije:*\n\n`;
                 for(let i=0; i < Math.min(matches.length, 4); i++) {
                     let m = matches[i];
-                    replyMessage += `👤 *Naam:* ${m.name}\n🆔 *SR:* ${m.sr} | *Class:* ${m.cls}\n👨‍💼 *Pita:* ${m.father}\n📱 *Mobile:* ${m.mobile}\n🏡 *Gaon:* ${m.village}\n💰 *Bakaya Fees:* ₹${m.balance}\n〰️〰️〰️\n`;
+                    replyMessage += `👤 *Naam:* ${m.name}\n🆔 *SR:* ${m.sr} | *Class:* ${m.cls}\n👨‍💼 *Pita:* ${m.father}\n📱 *Mobile:* +91${m.mobile}\n🏡 *Gaon:* ${m.village}\n💰 *Bakaya Fees:* ₹${m.balance}\n〰️〰️〰️\n`;
                 }
                 if(matches.length > 4) { replyMessage += `*+ ${matches.length - 4} aur bachche mile hain.*\n`; }
                 replyMessage += `\n🙏 _(मेनू के लिए *0* भेजें)_`;
@@ -465,7 +440,6 @@ app.post("/webhook", async (req, res) => {
 
         if (replyMessage !== "") {
             await sendWhatsAppMessage(from, replyMessage);
-            console.log(`✅ Reply bheja gaya: ${from}`);
         }
         res.sendStatus(200);
     } else {
