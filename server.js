@@ -11,7 +11,10 @@ app.use(express.json());
 // ==========================================
 const VERIFY_TOKEN = "RRA_ERP_SECRET_TOKEN_2026"; 
 const FB_ACCESS_TOKEN = "EAAUeE0z0JlgBRtihbXVCTLIHh5Mx3oXwkYxZCxCQg0W9eNcD2yPcVRqIpdfrIqBvAoGKneEqnonojZB8TPRIpNErvQBX9wwuOtibQQV0j1OzbmrKPLvBmmCxytZAERMg1VZASnJHTSFaNu8oTqnG10n2FnkVGW5Oa7fDYZBEveZBtYyhHKOOeo4O9htmQ7hwZDZD"; 
+
+// ⚠️ कृपया इसे न बदलें! यह मोबाइल नंबर नहीं, बल्कि Facebook का सिस्टम ID है।
 const PHONE_NUMBER_ID = "1152692744596700"; 
+
 const KAILASH_JI = "918955250697"; 
 const ROHITASHV_JI = "918058039415"; 
 
@@ -166,11 +169,13 @@ async function sendWhatsAppMessage(toNumber, messageText) {
     try {
         await axios({
             method: "POST",
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v20.0/${PHONE_NUMBER_ID}/messages`,
             data: { messaging_product: "whatsapp", to: toNumber, text: { body: messageText } },
             headers: { Authorization: `Bearer ${FB_ACCESS_TOKEN}`, "Content-Type": "application/json" }
         });
-    } catch (error) { console.error("❌ Error:", error.message); }
+    } catch (error) { 
+        console.error("❌ Normal Msg Error:", error.response ? JSON.stringify(error.response.data) : error.message); 
+    }
 }
 
 // ==========================================
@@ -180,7 +185,7 @@ async function sendWhatsAppTemplate(toNumber, personName, mainMessage) {
     try {
         await axios({
             method: "POST",
-            url: `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages`,
+            url: `https://graph.facebook.com/v20.0/${PHONE_NUMBER_ID}/messages`,
             data: { 
                 messaging_product: "whatsapp", 
                 to: toNumber, 
@@ -201,7 +206,10 @@ async function sendWhatsAppTemplate(toNumber, personName, mainMessage) {
             },
             headers: { Authorization: `Bearer ${FB_ACCESS_TOKEN}`, "Content-Type": "application/json" }
         });
-    } catch (error) { console.error("❌ Template Error:", error.message); }
+    } catch (error) { 
+        // 🔴 SMART ERROR LOGGER 🔴
+        console.error("❌ VIP Template Error:", error.response ? JSON.stringify(error.response.data) : error.message); 
+    }
 }
 
 app.get("/webhook", (req, res) => {
