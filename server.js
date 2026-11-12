@@ -248,7 +248,7 @@ app.post("/webhook", async (req, res) => {
             }
 
             sendWhatsAppMessage(from, `🚀 VIP संदेश भेजा जा रहा है... (+${finalPhone})`);
-            await sendWhatsAppTemplate(finalPhone, "अभिभावک/साथी", customMsg);
+            await sendWhatsAppTemplate(finalPhone, "अभिभावक/साथी", customMsg);
             sendWhatsAppMessage(from, `✅ संदेश सफलतापूर्वक भेजा गया!`);
             return res.sendStatus(200);
         }
@@ -402,5 +402,5 @@ app.post("/webhook", async (req, res) => {
         if (["hi", "hello", "नमस्ते", "namaste", "0", "help", "राम राम", "हाय"].includes(userText)) {
             replyMessage = `🏫 *Ranjeet Royal Academy (RRA) में आपका हार्दिक स्वागत है!* 🏫\n\nराम-राम सा! 🙏 मैं RRA का digital assistant हूँ।\n\n*1* 📝 एडमिशन की जानकारी\n*2* 💳 फीस और छात्र रिकॉर्ड खोजें\n*3* 🏖️ छुट्टियों की जानकारी\n*4* 📞 स्कूल मैनेजमेंट नंबर\n*5* ✍️ शिकायत या सुझाव\n*6* 🚌 स्कूल गाड़ी / ड्राइवर नंबर\n*7* 🏫 स्कूल खुलने का समय\n\n_कृपया अपनी आवश्यकता अनुसार नंबर दबाएं।_`;
         } 
-        else if (userText === "1") { replyMessage = `📝 *Admission ki Jankari:*\nNursery se 10th tak ke admission chalu hain.\n🔗 *Online Form Link:* https://core.uolo.com/enquiry/MTE1Mjk \nAap school aakar bhi form le sakte hain.`; }
-        else if (userText === "2") { replyMessage = `🔍 *Data Khojne ka Tareeka:*\nFees aur detail janne ke liye bachche ka:\n*Name*, *SR Number*, *Mobile Nu
+        else if (userText === "1") { replyMessage = `📝 *Admission ki Jankari:*\nNursery se 10th तक के admission chalu hain.\n🔗 *Online Form Link:* https://core.uolo.com/enquiry/MTE1Mjk \nAap school aakar bhi form le sakte hain.`; }
+        else if (userText === "2") { replyMessage = `🔍 *Data Khojne ka Tareeka:*\nFees aur detail janne ke liye bachche ka:\n*Name*, *SR Number*, *Mobile Num
